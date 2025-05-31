@@ -1,0 +1,76 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/ioctl.h>
+#include <sys/stat.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+#include <sys/mman.h>
+#include "fpga_ctrl.h"
+
+#define BRAM_BASE_ADDR (0x80003000)
+#define BRAM_SIZE (0x1000)
+struct fpga_bram_handle {
+	int fd;
+	u32 *base_addr;
+};
+
+static struct fpga_bram_handle fpga_bram;
+
+static inline struct fpga_bram_handle *fpga_handle_get(void)
+{
+	return &fpga_bram;
+}
+
+static inline int fpga_res_check(void *handle, u32 offset)
+{
+	if (handle == NULL || offset >= (BRAM_SIZE / sizeof(u32)))
+		return -1;
+
+	return 0;
+}
+
+void *fpga_res_init(void)
+{
+	struct fpga_bram_handle *fpga = fpga_handle_get();
+	char *devname = "/dev/mem";
+
+	if ((fpga->fd = open(devname, O_RDWR)) < 0) {
+		printf("open %s failed\n", devname);
+		return NULL;
+	}
+
+	fpga->base_addr = mmap(NULL, BRAM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fpga->fd, BRAM_BASE_ADDR);
+	if (fpga->base_addr == MAP_FAILED) {
+		printf("map fpga base addr failed!\n");
+		return NULL;
+	}
+
+	return fpga;
+}
+
+int fpga_bram_write(void *handle, u32 offset, u32 val)
+{
+	if (fpga_res_check(handle, offset) == -1)
+		return -1;
+
+	struct fpga_bram_handle *fpga = handle;
+	fpga->base_addr[offset] = val;
+
+	return 0;
+}
+
+u32 fpga_bram_read(void *handle, u32 offset)
+{
+	if (fpga_res_check(handle, offset) == -1)
+		return ~0;
+
+	struct fpga_bram_handle *fpga = handle;
+	return fpga->base_addr[offset];
+}
