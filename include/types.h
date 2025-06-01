@@ -10,6 +10,7 @@ typedef unsigned int u32;
 typedef signed long long s64;
 typedef unsigned long long u64;
 
+#include <stdbool.h>
 #include "compiler_gcc.h"
 
 #endif	/* __TYPES_H__ */

@@ -5,8 +5,8 @@
 extern "C"
 {
 #endif
-#include <stdbool.h>
 
+#include "types.h"
 
 typedef struct {	/* rngbuf - ring buffer */
 	int wptr;		/* offset from start of buffer where to write next */
