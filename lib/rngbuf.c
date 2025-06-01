@@ -2,9 +2,9 @@
 #include <string.h>
 #include "rngbuf.h"
 
-#define max(a,b) (((a)>(b))?(a):(b))
+#define max(a,b) (((a) > (b)) ? (a) : (b))
 #ifndef min
-#define min(a,b) (((a)<(b))?(a):(b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
 /*******************************************************************************
@@ -31,7 +31,7 @@ rngbuf_handle_t rngbuf_create(int nbytes)
 	buffer = malloc((unsigned)++nbytes);
 
 	if (buffer == NULL) {
-		free((char *)rngbuf_id);
+		free(rngbuf_id);
 		return (NULL);
 	}
 
@@ -54,8 +54,11 @@ rngbuf_handle_t rngbuf_create(int nbytes)
 
 void rngbuf_delete(rngbuf_handle_t rngbuf_id)
 {
+	if (rngbuf_id == NULL)
+		return;
+
 	free(rngbuf_id->buf);
-	free((char *)rngbuf_id);
+	free(rngbuf_id);
 }
 /*******************************************************************************
 *
@@ -76,7 +79,7 @@ void rngbuf_flush(rngbuf_handle_t rngbuf_id)
 *
 * rngbuf_get - get characters from a ring buffer
 *
-* This routine copies bytes from the ring buffer <rngId> into <buffer>.
+* This routine copies bytes from the ring buffer <rngbuf_id> into <buffer>.
 * It copies as many bytes as are available in the ring, up to <maxbytes>.
 * The bytes copied will be removed from the ring.
 *
@@ -85,38 +88,40 @@ void rngbuf_flush(rngbuf_handle_t rngbuf_id)
 * it may be zero if the ring buffer is empty at the time of the call.
 */
 
-int rngbuf_get(rngbuf_handle_t rngId, char *buffer, int maxbytes)
+int rngbuf_get(rngbuf_handle_t rngbuf_id, char *buffer, int maxbytes)
 {
+	if (rngbuf_id == NULL)
+		return -1;
+
 	int bytesgot = 0;
-	int wptr = rngId->wptr;
+	int wptr = rngbuf_id->wptr;
 	int bytes2;
 	int rptr = 0;
 
-	if (wptr >= rngId->rptr) {
+	if (wptr >= rngbuf_id->rptr) {
 		/* wptr has not wrapped around */
-
-		bytesgot = min(maxbytes, wptr - rngId->rptr);
-		bcopy(&rngId->buf[rngId->rptr], buffer, bytesgot);
-		rngId->rptr += bytesgot;
+		bytesgot = min(maxbytes, wptr - rngbuf_id->rptr);
+		bcopy(&rngbuf_id->buf[rngbuf_id->rptr], buffer, bytesgot);
+		rngbuf_id->rptr += bytesgot;
 	} else {
 		/* wptr has wrapped around.  Grab chars up to the end of the
 		 * buffer, then wrap around if we need to. */
 
-		bytesgot = min(maxbytes, rngId->size - rngId->rptr);
-		bcopy(&rngId->buf[rngId->rptr], buffer, bytesgot);
-		rptr = rngId->rptr + bytesgot;
+		bytesgot = min(maxbytes, rngbuf_id->size - rngbuf_id->rptr);
+		bcopy(&rngbuf_id->buf[rngbuf_id->rptr], buffer, bytesgot);
+		rptr = rngbuf_id->rptr + bytesgot;
 
 		/* If rptr is equal to size, we've read the entire buffer,
 		 * and need to wrap now.  If bytesgot < maxbytes, copy some more chars
 		 * in now. */
-
-		if (rptr == rngId->size) {
+		if (rptr == rngbuf_id->size) {
 			bytes2 = min(maxbytes - bytesgot, wptr);
-			bcopy(rngId->buf, buffer + bytesgot, bytes2);
-			rngId->rptr = bytes2;
+			bcopy(rngbuf_id->buf, buffer + bytesgot, bytes2);
+			rngbuf_id->rptr = bytes2;
 			bytesgot += bytes2;
-		} else
-			rngId->rptr = rptr;
+		} else {
+			rngbuf_id->rptr = rptr;
+		}
 	}
 
 	return (bytesgot);
@@ -140,45 +145,45 @@ int rngbuf_get(rngbuf_handle_t rngId, char *buffer, int maxbytes)
 * if there is insufficient room in the ring buffer at the time of the call.
 */
 
-int rngbuf_put(rngbuf_handle_t rngId, char *buffer, int nbytes)
+int rngbuf_put(rngbuf_handle_t rngbuf_id, char *buffer, int nbytes)
 {
-	int bytesput = 0;
-	int rptr = rngId->rptr;
-	int bytes2;
-	int rptr = 0;
+	if (rngbuf_id == NULL)
+		return -1;
 
-	if (rptr > rngId->wptr) {
+	int bytesput = 0;
+	int rptr = rngbuf_id->rptr;
+	int bytes2;
+	int wptr = 0;
+
+	if (rptr > rngbuf_id->wptr) {
 		/* rptr is ahead of wptr.  We can fill up to two bytes
 		 * before it */
-
-		bytesput = min(nbytes, rptr - rngId->wptr - 1);
-		bcopy(buffer, &rngId->buf [rngId->wptr], bytesput);
-		rngId->wptr += bytesput;
+		bytesput = min(nbytes, rptr - rngbuf_id->wptr - 1);
+		bcopy(buffer, &rngbuf_id->buf[rngbuf_id->wptr], bytesput);
+		rngbuf_id->wptr += bytesput;
 	} else if (rptr == 0) {
 		/* rptr is at the beginning of the buffer.  We can fill till
 		 * the next-to-last element */
-
-		bytesput = min(nbytes, rngId->size - rngId->wptr - 1);
-		bcopy(buffer, &rngId->buf [rngId->wptr], bytesput);
-		rngId->wptr += bytesput;
+		bytesput = min(nbytes, rngbuf_id->size - rngbuf_id->wptr - 1);
+		bcopy(buffer, &rngbuf_id->buf[rngbuf_id->wptr], bytesput);
+		rngbuf_id->wptr += bytesput;
 	} else {
 		/* rptr has wrapped around, and its not 0, so we can fill
 		 * at least to the end of the ring buffer.  Do so, then see if
 		 * we need to wrap and put more at the beginning of the buffer. */
+		bytesput = min(nbytes, rngbuf_id->size - rngbuf_id->wptr);
+		bcopy(buffer, &rngbuf_id->buf[rngbuf_id->wptr], bytesput);
+		wptr = rngbuf_id->wptr + bytesput;
 
-		bytesput = min(nbytes, rngId->size - rngId->wptr);
-		bcopy(buffer, &rngId->buf [rngId->wptr], bytesput);
-		rptr = rngId->wptr + bytesput;
-
-		if (rptr == rngId->size) {
+		if (wptr == rngbuf_id->size) {
 			/* We need to wrap, and perhaps put some more chars */
-
 			bytes2 = min(nbytes - bytesput, rptr - 1);
-			bcopy(buffer + bytesput, rngId->buf, bytes2);
-			rngId->wptr = bytes2;
+			bcopy(buffer + bytesput, rngbuf_id->buf, bytes2);
+			rngbuf_id->wptr = bytes2;
 			bytesput += bytes2;
-		} else
-			rngId->wptr = rptr;
+		} else {
+			rngbuf_id->wptr = wptr;
+		}
 	}
 
 	return (bytesput);
@@ -195,6 +200,9 @@ int rngbuf_put(rngbuf_handle_t rngId, char *buffer, int nbytes)
 
 bool rngbuf_is_empty(rngbuf_handle_t rngbuf_id)
 {
+	if (rngbuf_id == NULL)
+		return false;
+
 	return (rngbuf_id->wptr == rngbuf_id->rptr);
 }
 /*******************************************************************************
@@ -209,8 +217,10 @@ bool rngbuf_is_empty(rngbuf_handle_t rngbuf_id)
 
 bool rngbuf_is_full(rngbuf_handle_t rngbuf_id)
 {
-	int n = rngbuf_id->wptr - rngbuf_id->rptr + 1;
+	if (rngbuf_id == NULL)
+		return false;
 
+	int n = rngbuf_id->wptr - rngbuf_id->rptr + 1;
 	return ((n == 0) || (n == rngbuf_id->size));
 }
 
@@ -226,8 +236,10 @@ bool rngbuf_is_full(rngbuf_handle_t rngbuf_id)
 
 int rngbuf_free_bytes(rngbuf_handle_t rngbuf_id)
 {
-	 int n = rngbuf_id->rptr - rngbuf_id->wptr - 1;
+	if (rngbuf_id == NULL)
+		return -1;
 
+	int n = rngbuf_id->rptr - rngbuf_id->wptr - 1;
 	if (n < 0)
 		n += rngbuf_id->size;
 
@@ -245,8 +257,10 @@ int rngbuf_free_bytes(rngbuf_handle_t rngbuf_id)
 
 int rngbuf_n_bytes(rngbuf_handle_t rngbuf_id)
 {
-	 int n = rngbuf_id->wptr - rngbuf_id->rptr;
+	if (rngbuf_id == NULL)
+		return -1;
 
+	int n = rngbuf_id->wptr - rngbuf_id->rptr;
 	if (n < 0)
 		n += rngbuf_id->size;
 
@@ -274,7 +288,10 @@ int rngbuf_n_bytes(rngbuf_handle_t rngbuf_id)
 
 void rngbuf_put_ahead(rngbuf_handle_t rngbuf_id, char byte, int offset)
 {
-	 int n = rngbuf_id->wptr + offset;
+	if (rngbuf_id == NULL)
+		return;
+
+	int n = rngbuf_id->wptr + offset;
 
 	if (n >= rngbuf_id->size)
 		n -= rngbuf_id->size;
@@ -294,6 +311,9 @@ void rngbuf_put_ahead(rngbuf_handle_t rngbuf_id, char byte, int offset)
 
 void rngbuf_move_ahead(rngbuf_handle_t rngbuf_id, int n)
 {
+	if (rngbuf_id == NULL)
+		return;
+
 	n += rngbuf_id->wptr;
 
 	if (n >= rngbuf_id->size)
