@@ -11,11 +11,11 @@ include_directories(../include)
 link_directories(/usr/local/lib)
 
 # Add the add function
-add_library(add ../src/fpga_ctrl.c ../lib/crc8.c ../lib/crc16.c ../lib/rngbuf.c)
+add_library(add ../src/fpga_ctrl.c ../lib/crc8.c ../lib/crc16.c ../lib/rngbuf.c ../src/usr_dma.c)
 target_include_directories(add PUBLIC src)
 
 # Add the test
-add_executable(test_add ../test/test_fpga_ctrl.cpp ../test/test_crc8.cpp ../test/test_rngbuf.cpp)
+add_executable(test_add ../test/test_fpga_ctrl.cpp ../test/test_crc8.cpp ../test/test_rngbuf.cpp ../test_usr_dma.cpp)
 target_link_libraries(test_add gtest gtest_main add pthread)
 
 # Add a test
