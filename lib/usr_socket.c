@@ -24,7 +24,7 @@ int usr_create_socket(int port)
 	int keepcount = 3;     /* detect at most 3 times */
 	int keepinterval = 2;  /* set detect interval as 2s */
 
-	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 	if (listen_fd == -1) {
 		printf("%s create socket failed!\n", __func__);
 		return -1;
