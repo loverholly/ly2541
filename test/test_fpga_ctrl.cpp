@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "common.h"
 #include "fpga_ctrl.h"
 
 TEST(fpga_res, init_res)

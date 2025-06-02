@@ -1,18 +1,4 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/ioctl.h>
-#include <sys/stat.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-#include <sys/mman.h>
-#include <pthread.h>
+#include "common.h"
 #include "fpga_ctrl.h"
 
 #define BRAM_BASE_ADDR (0x80003000)

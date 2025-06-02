@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "common.h"
 #include "usr_dma.h"
 
 TEST(usr_dma, open_dma)

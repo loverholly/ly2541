@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "common.h"
 #include "rngbuf.h"
 
 TEST(rngbuf_create, init_rngbuf)

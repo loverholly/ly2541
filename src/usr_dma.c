@@ -1,12 +1,5 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "types.h"
-
+#include "common.h"
+#include "usr_dma.h"
 
 static inline int is_usr_dma_invalid(int fd)
 {

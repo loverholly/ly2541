@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <error.h>
-#include <sys/prctl.h>
+#include "common.h"
 #include "usr_thread.h"
 
 #define THREAD_NAME_LEN  16
