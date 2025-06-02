@@ -2,10 +2,23 @@
 #include <string.h>
 #include "rngbuf.h"
 
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
+/*******************************************************************************
+*
+* rngbuf_check_valid - check the rngbuf_id is valid
+*
+* This routine creates a ring buffer of size <nbytes>, and initializes
+* it.  Memory for the buffer is allocated from the system memory partition.
+*
+* RETURNS
+* true--the param is valid; false- the param is invalid.
+*/
+static bool rngbuf_check_valid(rngbuf_handle_t rngbuf_id)
+{
+	if (rngbuf_id == NULL || rngbuf_id->buf == NULL)
+		return false;
+
+	return true;
+}
 
 /*******************************************************************************
 *
@@ -54,11 +67,12 @@ rngbuf_handle_t rngbuf_create(int nbytes)
 
 void rngbuf_delete(rngbuf_handle_t rngbuf_id)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return;
 
 	free(rngbuf_id->buf);
 	free(rngbuf_id);
+	rngbuf_id->buf = NULL;
 }
 /*******************************************************************************
 *
@@ -90,7 +104,7 @@ void rngbuf_flush(rngbuf_handle_t rngbuf_id)
 
 int rngbuf_get(rngbuf_handle_t rngbuf_id, char *buffer, int maxbytes)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return -1;
 
 	int bytesgot = 0;
@@ -147,7 +161,7 @@ int rngbuf_get(rngbuf_handle_t rngbuf_id, char *buffer, int maxbytes)
 
 int rngbuf_put(rngbuf_handle_t rngbuf_id, char *buffer, int nbytes)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return -1;
 
 	int bytesput = 0;
@@ -200,7 +214,7 @@ int rngbuf_put(rngbuf_handle_t rngbuf_id, char *buffer, int nbytes)
 
 bool rngbuf_is_empty(rngbuf_handle_t rngbuf_id)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return false;
 
 	return (rngbuf_id->wptr == rngbuf_id->rptr);
@@ -217,7 +231,7 @@ bool rngbuf_is_empty(rngbuf_handle_t rngbuf_id)
 
 bool rngbuf_is_full(rngbuf_handle_t rngbuf_id)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return false;
 
 	int n = rngbuf_id->wptr - rngbuf_id->rptr + 1;
@@ -236,7 +250,7 @@ bool rngbuf_is_full(rngbuf_handle_t rngbuf_id)
 
 int rngbuf_free_bytes(rngbuf_handle_t rngbuf_id)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return -1;
 
 	int n = rngbuf_id->rptr - rngbuf_id->wptr - 1;
@@ -257,7 +271,7 @@ int rngbuf_free_bytes(rngbuf_handle_t rngbuf_id)
 
 int rngbuf_n_bytes(rngbuf_handle_t rngbuf_id)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return -1;
 
 	int n = rngbuf_id->wptr - rngbuf_id->rptr;
@@ -288,7 +302,7 @@ int rngbuf_n_bytes(rngbuf_handle_t rngbuf_id)
 
 void rngbuf_put_ahead(rngbuf_handle_t rngbuf_id, char byte, int offset)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return;
 
 	int n = rngbuf_id->wptr + offset;
@@ -311,7 +325,7 @@ void rngbuf_put_ahead(rngbuf_handle_t rngbuf_id, char byte, int offset)
 
 void rngbuf_move_ahead(rngbuf_handle_t rngbuf_id, int n)
 {
-	if (rngbuf_id == NULL)
+	if (rngbuf_check_valid(rngbuf_id) == false)
 		return;
 
 	n += rngbuf_id->wptr;

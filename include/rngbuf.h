@@ -9,8 +9,8 @@ extern "C"
 #include "types.h"
 
 typedef struct {	/* rngbuf - ring buffer */
-	int wptr;		/* offset from start of buffer where to write next */
-	int rptr;	/* offset from start of buffer where to read next */
+	volatile int wptr;		/* offset from start of buffer where to write next */
+	volatile int rptr;	/* offset from start of buffer where to read next */
 	int size;	/* size of ring in bytes */
 	char *buf;		/* pointer to start of buffer */
 } rngbuf_t;

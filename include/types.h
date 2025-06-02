@@ -10,6 +10,11 @@ typedef unsigned int u32;
 typedef signed long long s64;
 typedef unsigned long long u64;
 
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 #include <stdbool.h>
 #include "compiler_gcc.h"
 
