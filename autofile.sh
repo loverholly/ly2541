@@ -5,6 +5,7 @@ echo "#define __VERSION_H__" >> version.h
 echo "" >> version.h
 date +"#define MAINCTRL_VERSION \"%F,%T\"" >> version.h
 echo "#define GIT_VERSION \"$(git log -n 1 --pretty=format:"%h")\"" >> version.h
+echo "#define RELEASE_VERSION \"$(git describe --tags --abbrev=0)\"" >> version.h
 echo "" >> version.h
 echo "void version_show(void);" >> version.h
 echo "" >> version.h

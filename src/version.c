@@ -4,5 +4,5 @@
 
 void version_show(void)
 {
-	printf("version g%s %s\n", GIT_VERSION, MAINCTRL_VERSION);
+	printf("version g%s %s %s\n", GIT_VERSION, RELEASE_VERSION, MAINCTRL_VERSION);
 }
