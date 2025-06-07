@@ -27,6 +27,8 @@
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include <linux/ioctl.h>
+#include <semaphore.h>
+#include <pthread.h>
 #include "types.h"
 
 #endif	/* __COMMON_H__ */

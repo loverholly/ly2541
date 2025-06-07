@@ -43,7 +43,6 @@ int usr_cmd_invalid_check(int fd, char *buf)
 int usr_net_period_feedback_cmd(int fd, char *buf, int size)
 {
 	int ret = -1;
-	int pos = 0;
 	if (usr_cmd_invalid_check(fd, buf))
 		return ret;
 

@@ -14,6 +14,8 @@ int fpga_bram_write(void *handle, u32 offset, u32 val);
 
 u32 fpga_bram_read(void *handle, u32 offset);
 
+void fpga_res_close(void *handle);
+
 #ifdef __cplusplus
 }
 #endif
