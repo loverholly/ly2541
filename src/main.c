@@ -8,6 +8,7 @@
 #include "fpga_ctrl.h"
 
 typedef struct {
+	pthread_mutex_t mutex;
 	char *buf;
 	int size;
 } buf_res_t;
@@ -42,7 +43,18 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 	resource->chan0_dma_fd = usr_dma_open("/dev/dma_dev");
 	resource->chan1_dma_fd = usr_dma_open("/dev/dma_dev1");
 	resource->chan2_dma_fd = usr_dma_open("/dev/dma_dev2");
-	resource->recv.buf = malloc(64 * 1024 * sizeof(u8));
+	resource->recv.size = 64 * 1024;
+	resource->recv.buf = malloc(resource->recv.size * sizeof(u8));
+	pthread_mutex_init(&resource->recv.mutex, NULL);
+
+	resource->read.size = 64 * 1024;
+	resource->read.buf = malloc(resource->read.size * sizeof(u8));
+	pthread_mutex_init(&resource->read.mutex, NULL);
+
+	resource->send.size = 64 * 1024;
+	resource->send.buf = malloc(resource->send.size * sizeof(u8));
+	pthread_mutex_init(&resource->send.mutex, NULL);
+
 	return 0;
 }
 
@@ -55,8 +67,17 @@ int usr_thread_resource_free(usr_thread_res_t *resource)
 	usr_dma_close(resource->chan0_dma_fd);
 	usr_dma_close(resource->chan1_dma_fd);
 	usr_dma_close(resource->chan2_dma_fd);
-	free(resource->recv.buf);
 	fpga_res_close(resource->fpga_handle);
+
+	free(resource->recv.buf);
+	pthread_mutex_destroy(&resource->recv.mutex);
+
+	free(resource->read.buf);
+	pthread_mutex_destroy(&resource->read.mutex);
+
+	free(resource->send.buf);
+	pthread_mutex_destroy(&resource->send.mutex);
+
 	return 0;
 }
 
