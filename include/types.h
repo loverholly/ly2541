@@ -15,6 +15,8 @@ typedef unsigned long long u64;
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 #include <stdbool.h>
 #include "compiler_gcc.h"
 
