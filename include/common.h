@@ -29,6 +29,7 @@
 #include <linux/ioctl.h>
 #include <semaphore.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include "types.h"
 
 #endif	/* __COMMON_H__ */

@@ -70,7 +70,7 @@ int usr_send_to_socket(int accept_fd, char *buf, int size)
 	if (accept_fd == -1)
 		return -1;
 
-	return send(accept_fd, buf, size, 0);
+	return send(accept_fd, buf, size, MSG_NOSIGNAL);
 }
 
 int usr_recv_from_socket(int accept_fd, char *buf, int size)
@@ -78,7 +78,7 @@ int usr_recv_from_socket(int accept_fd, char *buf, int size)
 	if (accept_fd == -1)
 		return -1;
 
-	return recv(accept_fd, buf, size, 0);
+	return recv(accept_fd, buf, size, MSG_NOSIGNAL);
 }
 
 int usr_close_socket(int fd)
