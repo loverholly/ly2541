@@ -43,6 +43,7 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 	resource->chan1_dma_fd = usr_dma_open("/dev/dma_dev1");
 	resource->chan2_dma_fd = usr_dma_open("/dev/dma_dev2");
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
+		resource->sock[i].accept_fd = -1;
 		resource->sock[i].size = 64 * 1024;
 		resource->sock[i].buf = malloc(resource->sock[i].size * sizeof(u8));
 		pthread_mutex_init(&resource->sock[i].mutex, NULL);
@@ -63,6 +64,7 @@ int usr_thread_resource_free(usr_thread_res_t *resource)
 	fpga_res_close(resource->fpga_handle);
 
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++)  {
+		resource->sock[i].accept_fd = -1;
 		free(resource->sock[i].buf);
 		pthread_mutex_destroy(&resource->sock[i].mutex);
 	}
@@ -73,9 +75,9 @@ int usr_thread_resource_free(usr_thread_res_t *resource)
 void *recv_from_socket(void *param)
 {
 	buf_res_t *recv = param;
+	int connect_fd = recv->accept_fd;
 
 	while (true) {
-		int connect_fd = recv->accept_fd;
 		pthread_mutex_lock(&recv->mutex);
 		int size = usr_recv_from_socket(connect_fd, recv->buf, recv->size);
 		if (size < 0) {
@@ -89,6 +91,7 @@ void *recv_from_socket(void *param)
 	}
 
 end:
+	recv->accept_fd = -1;
 	usr_thread_exit(NULL);
 	return NULL;
 }
@@ -96,9 +99,9 @@ end:
 void *send_to_socket(void *param)
 {
 	buf_res_t *send = param;
+	int connect_fd = send->accept_fd;
 
 	while (true) {
-		int connect_fd = send->accept_fd;
 		pthread_mutex_lock(&send->mutex);
 
 		u32 origin = send->size;
@@ -106,6 +109,7 @@ void *send_to_socket(void *param)
 		for (int i = 0; i < send->size; i++) {
 			send->buf[i] = rand();
 		}
+
 		int size = usr_send_to_socket(connect_fd, send->buf, send->size);
 		if (size < 0) {
 			usr_close_socket(connect_fd);
@@ -115,9 +119,11 @@ void *send_to_socket(void *param)
 
 		send->size = origin;
 		pthread_mutex_unlock(&send->mutex);
+		sleep(1);
 	}
 
 end:
+	send->accept_fd = -1;
 	usr_thread_exit(NULL);
 	return NULL;
 }
@@ -125,9 +131,9 @@ end:
 void *period_send_to_socket(void *param)
 {
 	buf_res_t *send = param;
+	int connect_fd = send->accept_fd;
 
 	while (true) {
-		int connect_fd = send->accept_fd;
 
 		pthread_mutex_lock(&send->mutex);
 
@@ -147,9 +153,11 @@ void *period_send_to_socket(void *param)
 
 		send->size = origin;
 		pthread_mutex_unlock(&send->mutex);
+		sleep(1);
 	}
 
 end:
+	send->accept_fd = -1;
 	usr_thread_exit(NULL);
 	return NULL;
 }
@@ -159,19 +167,34 @@ void *accept_thread(void *param)
 	usr_thread_res_t *resource = param;
 
 	while (true) {
-		int accept_fd = usr_accept_socket(resource->server_fd);
-		if (accept_fd < 0)
-			continue;
-
+		int i = 0;
+		struct linger linger_opt;
 		pthread_t new_recv_connect;
 		pthread_t new_send_connect;
 		pthread_t new_period_connect;
-		for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
-			resource->sock[i].accept_fd = accept_fd;
+		int res_size = ARRAY_SIZE(resource->sock);
+		int accept_fd = usr_accept_socket(resource->server_fd);
+
+		if (accept_fd < 0)
+			continue;
+
+		for (i = 0; i < res_size; i++) {
+			if (resource->sock[i].accept_fd != -1) {
+				break;
+			}
 		}
 
+		/* keep just one connect instance */
+		if (i != res_size) {
+			usr_close_socket(accept_fd);
+			continue;
+		}
+
+
+		for (i = 0; i < res_size; i++)
+			resource->sock[i].accept_fd = accept_fd;
+
 		/* check the socket force close */
-		struct linger linger_opt;
 		linger_opt.l_onoff = 1;
 		linger_opt.l_linger = 0;
 		setsockopt(accept_fd, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
