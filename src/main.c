@@ -14,6 +14,8 @@ typedef struct {
 	int size;
 } buf_res_t;
 
+#define TCP_SEND_MUTEX 1
+
 typedef struct {
 	int server_fd;
 	int chan0_dma_fd;
@@ -21,8 +23,9 @@ typedef struct {
 	int chan2_dma_fd;
 	int cpu_affinity;
 	void *fpga_handle;
-	buf_res_t sock[3];
+	buf_res_t sock[3 - TCP_SEND_MUTEX];
 } usr_thread_res_t;
+
 
 int usr_thread_invalid_check(usr_thread_res_t *resource)
 {
@@ -119,7 +122,6 @@ void *send_to_socket(void *param)
 
 		send->size = origin;
 		pthread_mutex_unlock(&send->mutex);
-		sleep(1);
 	}
 
 end:
@@ -153,7 +155,6 @@ void *period_send_to_socket(void *param)
 
 		send->size = origin;
 		pthread_mutex_unlock(&send->mutex);
-		sleep(1);
 	}
 
 end:
@@ -200,7 +201,7 @@ void *accept_thread(void *param)
 		setsockopt(accept_fd, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
 		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &resource->sock[0], NULL);
 		usr_thread_create(&new_send_connect, NULL, send_to_socket, &resource->sock[1], NULL);
-		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &resource->sock[2], NULL);
+		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &resource->sock[2 - TCP_SEND_MUTEX], NULL);
 		usr_thread_detach(new_recv_connect);
 		usr_thread_detach(new_send_connect);
 		usr_thread_detach(new_period_connect);
