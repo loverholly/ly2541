@@ -8,8 +8,7 @@ extern "C"
 
 #include "types.h"
 
-u8 crc8(u16 data);
-u16 crc16_byte(u16 crc, u8 data);
+u16 crc16(char *buf, u32 size);
 
 #ifdef __cplusplus
 }
