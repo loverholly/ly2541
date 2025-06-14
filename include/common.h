@@ -30,6 +30,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <stdatomic.h>
+#include <assert.h>
 #include "types.h"
 
 #endif	/* __COMMON_H__ */
