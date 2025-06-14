@@ -32,6 +32,7 @@ OBJS := $(C_OBJS) $(CXX_OBJS)
 ifeq ($(strip $(BUILD_TYPE)), DEBUG)
 CFLAGS += -g
 CFLAGS += -static
+CFLAGS += -DDEBUG
 endif
 
 ifeq ($(strip $(BUILD_TYPE)), RELEASE)

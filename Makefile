@@ -32,7 +32,7 @@ PRO_APP := mainApp
 
 # 编译类型
 # BUILD_TYPE ?= DEBUG
-  BUILD_TYPE ?= RELEASE
+BUILD_TYPE ?= RELEASE
 
 # shell command
 PWD := $(shell pwd)

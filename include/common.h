@@ -33,4 +33,10 @@
 #include <assert.h>
 #include "types.h"
 
+#if DEBUG
+#define sys_assert assert
+#else
+#define sys_assert do {} while (0)
+#endif /* DEBUG */
+
 #endif	/* __COMMON_H__ */
