@@ -20,7 +20,7 @@
 
 
 static int _serial_error(serial_t * serial, int code, int c_errno,
-			 const char *fmt, ...)
+                         const char *fmt, ...)
 {
 	va_list ap;
 
@@ -35,9 +35,9 @@ static int _serial_error(serial_t * serial, int code, int c_errno,
 		char buf[64];
 		strerror_r(c_errno, buf, sizeof(buf));
 		snprintf(serial->error.errmsg + strlen(serial->error.errmsg),
-			 sizeof(serial->error.errmsg) -
-			 strlen(serial->error.errmsg), ": %s [errno %d]", buf,
-			 c_errno);
+		         sizeof(serial->error.errmsg) -
+		         strlen(serial->error.errmsg), ": %s [errno %d]", buf,
+		         c_errno);
 	}
 
 	return code;
@@ -216,33 +216,33 @@ static int _serial_bits_to_baudrate(uint32_t bits)
 int serial_open(serial_t * serial, const char *path, uint32_t baudrate)
 {
 	return serial_open_advanced(serial, path, baudrate, 8, PARITY_NONE, 1,
-				    false, false);
+	                            false, false);
 }
 
 int serial_open_advanced(serial_t * serial, const char *path, uint32_t baudrate,
-			 unsigned int databits, serial_parity_t parity,
-			 unsigned int stopbits, bool xonxoff, bool rtscts)
+                         unsigned int databits, serial_parity_t parity,
+                         unsigned int stopbits, bool xonxoff, bool rtscts)
 {
 	struct termios termios_settings;
 
 	/* Validate args */
 	if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid data bits (can be 5,6,7,8)");
+		                     "Invalid data bits (can be 5,6,7,8)");
 	if (parity != PARITY_NONE && parity != PARITY_ODD
 	    && parity != PARITY_EVEN)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid parity (can be PARITY_NONE,PARITY_ODD,PARITY_EVEN)");
+		                     "Invalid parity (can be PARITY_NONE,PARITY_ODD,PARITY_EVEN)");
 	if (stopbits != 1 && stopbits != 2)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid stop bits (can be 1,2)");
+		                     "Invalid stop bits (can be 1,2)");
 
 	memset(serial, 0, sizeof(serial_t));
 
 	/* Open serial port */
 	if ((serial->fd = open(path, O_RDWR | O_NOCTTY)) < 0)
 		return _serial_error(serial, SERIAL_ERROR_OPEN, errno,
-				     "Opening serial port \"%s\"", path);
+		                     "Opening serial port \"%s\"", path);
 
 	memset(&termios_settings, 0, sizeof(termios_settings));
 
@@ -301,7 +301,7 @@ int serial_open_advanced(serial_t * serial, const char *path, uint32_t baudrate,
 		int errsv = errno;
 		close(serial->fd);
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errsv,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 	}
 
 	return 0;
@@ -326,9 +326,9 @@ int serial_read(serial_t * serial, uint8_t * buf, size_t len, int timeout_ms)
 
 		if ((ret =
 		     select(serial->fd + 1, &rfds, NULL, NULL,
-			    (timeout_ms < 0) ? NULL : &tv_timeout)) < 0)
+		            (timeout_ms < 0) ? NULL : &tv_timeout)) < 0)
 			return _serial_error(serial, SERIAL_ERROR_IO, errno,
-					     "select() on serial port");
+			                     "select() on serial port");
 
 		/* Timeout */
 		if (ret == 0)
@@ -336,12 +336,12 @@ int serial_read(serial_t * serial, uint8_t * buf, size_t len, int timeout_ms)
 
 		if ((ret = read(serial->fd, buf + bytes_read, bytes_left)) < 0)
 			return _serial_error(serial, SERIAL_ERROR_IO, errno,
-					     "Reading serial port");
+			                     "Reading serial port");
 
 		/* Empty read */
 		if (ret == 0 && len != 0)
 			return _serial_error(serial, SERIAL_ERROR_IO, 0,
-					     "Reading serial port: unexpected empty read");
+			                     "Reading serial port: unexpected empty read");
 
 		bytes_read += ret;
 		bytes_left -= ret;
@@ -356,7 +356,7 @@ int serial_write(serial_t * serial, const uint8_t * buf, size_t len)
 
 	if ((ret = write(serial->fd, buf, len)) < 0)
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
-				     "Writing serial port");
+		                     "Writing serial port");
 
 	return ret;
 }
@@ -366,7 +366,7 @@ int serial_flush(serial_t * serial)
 
 	if (tcdrain(serial->fd) < 0)
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
-				     "Flushing serial port");
+		                     "Flushing serial port");
 
 	return 0;
 }
@@ -375,7 +375,7 @@ int serial_input_waiting(serial_t * serial, unsigned int *count)
 {
 	if (ioctl(serial->fd, TIOCINQ, count) < 0)
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
-				     "TIOCINQ query");
+		                     "TIOCINQ query");
 
 	return 0;
 }
@@ -384,7 +384,7 @@ int serial_output_waiting(serial_t * serial, unsigned int *count)
 {
 	if (ioctl(serial->fd, TIOCOUTQ, count) < 0)
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
-				     "TIOCOUTQ query");
+		                     "TIOCOUTQ query");
 
 	return 0;
 }
@@ -399,7 +399,7 @@ int serial_poll(serial_t * serial, int timeout_ms)
 	fds[0].events = POLLIN | POLLPRI;
 	if ((ret = poll(fds, 1, timeout_ms)) < 0)
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
-				     "Polling serial port");
+		                     "Polling serial port");
 
 	if (ret)
 		return 1;
@@ -415,7 +415,7 @@ int serial_close(serial_t * serial)
 
 	if (close(serial->fd) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CLOSE, errno,
-				     "Closing serial port");
+		                     "Closing serial port");
 
 	serial->fd = -1;
 
@@ -428,7 +428,7 @@ int serial_get_baudrate(serial_t * serial, uint32_t * baudrate)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	*baudrate = _serial_bits_to_baudrate(cfgetospeed(&termios_settings));
 
@@ -441,7 +441,7 @@ int serial_get_databits(serial_t * serial, unsigned int *databits)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	switch (termios_settings.c_cflag & CSIZE) {
 	case CS5:
@@ -467,7 +467,7 @@ int serial_get_parity(serial_t * serial, serial_parity_t * parity)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	if ((termios_settings.c_cflag & PARENB) == 0)
 		*parity = PARITY_NONE;
@@ -485,7 +485,7 @@ int serial_get_stopbits(serial_t * serial, unsigned int *stopbits)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	if (termios_settings.c_cflag & CSTOPB)
 		*stopbits = 2;
@@ -501,7 +501,7 @@ int serial_get_xonxoff(serial_t * serial, bool *xonxoff)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	if (termios_settings.c_iflag & (IXON | IXOFF))
 		*xonxoff = true;
@@ -517,7 +517,7 @@ int serial_get_rtscts(serial_t * serial, bool *rtscts)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	if (termios_settings.c_cflag & CRTSCTS)
 		*rtscts = true;
@@ -533,14 +533,14 @@ int serial_set_baudrate(serial_t * serial, uint32_t baudrate)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	cfsetispeed(&termios_settings, _serial_baudrate_to_bits(baudrate));
 	cfsetospeed(&termios_settings, _serial_baudrate_to_bits(baudrate));
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -551,11 +551,11 @@ int serial_set_databits(serial_t * serial, unsigned int databits)
 
 	if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid data bits (can be 5,6,7,8)");
+		                     "Invalid data bits (can be 5,6,7,8)");
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	termios_settings.c_cflag &= ~CSIZE;
 	if (databits == 5)
@@ -569,7 +569,7 @@ int serial_set_databits(serial_t * serial, unsigned int databits)
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -581,11 +581,11 @@ int serial_set_parity(serial_t * serial, enum serial_parity parity)
 	if (parity != PARITY_NONE && parity != PARITY_ODD
 	    && parity != PARITY_EVEN)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid parity (can be PARITY_NONE,PARITY_ODD,PARITY_EVEN)");
+		                     "Invalid parity (can be PARITY_NONE,PARITY_ODD,PARITY_EVEN)");
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	termios_settings.c_iflag &= ~(INPCK | ISTRIP);
 	if (parity != PARITY_NONE)
@@ -599,7 +599,7 @@ int serial_set_parity(serial_t * serial, enum serial_parity parity)
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -610,11 +610,11 @@ int serial_set_stopbits(serial_t * serial, unsigned int stopbits)
 
 	if (stopbits != 1 && stopbits != 2)
 		return _serial_error(serial, SERIAL_ERROR_ARG, 0,
-				     "Invalid stop bits (can be 1,2)");
+		                     "Invalid stop bits (can be 1,2)");
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	termios_settings.c_cflag &= ~(CSTOPB);
 	if (stopbits == 2)
@@ -622,7 +622,7 @@ int serial_set_stopbits(serial_t * serial, unsigned int stopbits)
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -633,7 +633,7 @@ int serial_set_xonxoff(serial_t * serial, bool enabled)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	termios_settings.c_iflag &= ~(IXON | IXOFF | IXANY);
 	if (enabled)
@@ -641,7 +641,7 @@ int serial_set_xonxoff(serial_t * serial, bool enabled)
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -652,7 +652,7 @@ int serial_set_rtscts(serial_t * serial, bool enabled)
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_QUERY, errno,
-				     "Getting serial port attributes");
+		                     "Getting serial port attributes");
 
 	termios_settings.c_cflag &= ~CRTSCTS;
 	if (enabled)
@@ -660,7 +660,7 @@ int serial_set_rtscts(serial_t * serial, bool enabled)
 
 	if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
 		return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno,
-				     "Setting serial port attributes");
+		                     "Setting serial port attributes");
 
 	return 0;
 }
@@ -670,14 +670,14 @@ int serial_tostring(serial_t * serial, char *str, size_t len)
 	struct termios termios_settings;
 	uint32_t baudrate;
 	const char *databits_str, *parity_str, *stopbits_str, *xonxoff_str,
-	    *rtscts_str;
+	      *rtscts_str;
 
 	/* Instead of calling all of our individual getter functions, let's poll
 	 * termios attributes once to be efficient. */
 
 	if (tcgetattr(serial->fd, &termios_settings) < 0)
 		return snprintf(str, len,
-				"Serial (baudrate=?, databits=?, parity=?, stopbits=?, xonxoff=?, rtscts=?)");
+		                "Serial (baudrate=?, databits=?, parity=?, stopbits=?, xonxoff=?, rtscts=?)");
 
 	baudrate = _serial_bits_to_baudrate(cfgetospeed(&termios_settings));
 
@@ -721,9 +721,9 @@ int serial_tostring(serial_t * serial, char *str, size_t len)
 		rtscts_str = "false";
 
 	return snprintf(str, len,
-			"Serial (fd=%d, baudrate=%u, databits=%s, parity=%s, stopbits=%s, xonxoff=%s, rtscts=%s)",
-			serial->fd, baudrate, databits_str, parity_str,
-			stopbits_str, xonxoff_str, rtscts_str);
+	                "Serial (fd=%d, baudrate=%u, databits=%s, parity=%s, stopbits=%s, xonxoff=%s, rtscts=%s)",
+	                serial->fd, baudrate, databits_str, parity_str,
+	                stopbits_str, xonxoff_str, rtscts_str);
 }
 
 const char *serial_errmsg(serial_t * serial)

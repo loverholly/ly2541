@@ -6,6 +6,7 @@
 #include "usr_dma.h"
 #include "usr_net_cmd.h"
 #include "fpga_ctrl.h"
+#include "serial.h"
 
 typedef struct {
 	int accept_fd;
@@ -24,6 +25,8 @@ typedef struct {
 	int cpu_affinity;
 	void *fpga_handle;
 	buf_res_t sock[3 - TCP_SEND_MUTEX];
+	serial_t *recv_uart;	/* recv cmd from the uart */
+	serial_t *proc_uart;	/* send uart data to device */
 } usr_thread_res_t;
 
 
@@ -51,6 +54,8 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 		resource->sock[i].buf = malloc(resource->sock[i].size * sizeof(u8));
 		pthread_mutex_init(&resource->sock[i].mutex, NULL);
 	}
+	resource->recv_uart = serial_new();
+	resource->proc_uart = serial_new();
 
 	return 0;
 }
@@ -65,6 +70,8 @@ int usr_thread_resource_free(usr_thread_res_t *resource)
 	usr_dma_close(resource->chan1_dma_fd);
 	usr_dma_close(resource->chan2_dma_fd);
 	fpga_res_close(resource->fpga_handle);
+	serial_free(resource->recv_uart);
+	serial_free(resource->proc_uart);
 
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++)  {
 		resource->sock[i].accept_fd = -1;
