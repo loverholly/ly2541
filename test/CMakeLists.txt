@@ -11,7 +11,7 @@ include_directories(../include)
 link_directories(/usr/local/lib)
 
 # Add the add function
-add_library(add ../src/fpga_ctrl.c ../lib/crc8.c ../lib/crc16.c ../lib/rngbuf.c ../src/usr_dma.c)
+add_library(add ../common/hal/fpga_ctrl.c ../common/hal/crc16.c ../common/hal/rngbuf.c ../common/hal/usr_dma.c)
 target_include_directories(add PUBLIC src)
 
 # Add the test

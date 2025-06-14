@@ -29,7 +29,6 @@
 #include <linux/ioctl.h>
 #include <semaphore.h>
 #include <pthread.h>
-#include <stdatomic.h>
 #include <assert.h>
 #include "types.h"
 
