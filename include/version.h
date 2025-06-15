@@ -1,8 +1,8 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-#define MAINCTRL_VERSION "2025-06-14,17:13:02"
-#define GIT_VERSION "664f3a1"
+#define MAINCTRL_VERSION "2025-06-15,11:53:48"
+#define GIT_VERSION "4eea5dc"
 #define RELEASE_VERSION "V1.0.0.0"
 
 void version_show(void);
