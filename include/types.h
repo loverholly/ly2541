@@ -9,8 +9,9 @@ typedef signed int s32;
 typedef unsigned int u32;
 typedef signed long long s64;
 typedef unsigned long long u64;
-
+#ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
