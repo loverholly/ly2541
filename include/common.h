@@ -31,6 +31,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include "types.h"
+#include "compiler_gcc.h"
 
 #if DEBUG
 #define sys_assert assert

@@ -217,6 +217,33 @@ void *accept_thread(void *param)
 	return NULL;
 }
 
+void res_post(usr_thread_res_t *res)
+{
+	for (int i = 0; i < 8; i++) {
+		int val = i;
+		fpga_bram_write(res->fpga_handle, i, val);
+		int tval = fpga_bram_read(res->fpga_handle, i);
+		if (true || tval != val) {
+			printf("offset %d error ori 0x%x real 0x%x\n", i, val, tval);
+		}
+	}
+}
+
+void xdma_post(usr_thread_res_t *res)
+{
+
+	return;
+}
+
+void test_unit(usr_thread_res_t *res)
+{
+	if (!IS_ENABLED(TEST_UNIT))
+		return;
+
+	res_post(res);
+	xdma_post(res);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -224,6 +251,8 @@ int main(int argc, char *argv[])
 	version_show();
 
 	usr_thread_resource_init(&resource);
+	test_unit(&resource);
+
 	if (resource.server_fd != -1) {
 		pthread_t server_tid;
 		usr_thread_create(&server_tid, NULL, accept_thread, &resource, NULL);

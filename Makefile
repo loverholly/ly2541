@@ -17,6 +17,10 @@ ifndef CROSS_COMPILE
 EXCLUDE_DIR := common/zlog
 endif
 
+ifdef TEST_UNIT
+CFLAGS += -DTEST_UNIT=1
+endif
+
 ifdef CROSS_COMPILE
 #外部调用的库
 #LDFLAGS += -L./lib/zlog -lzlog
