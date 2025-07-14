@@ -114,7 +114,5 @@
  * otherwise. For boolean options, this is equivalent to
  * IS_ENABLED(CONFIG_FOO).
  */
-#define IS_BUILTIN(option) __is_defined(option)
-
-#define IS_ENABLED(option) IS_BUILTIN(option)
+#define IS_ENABLED(option) __is_defined(option)
 #endif	/*  */
