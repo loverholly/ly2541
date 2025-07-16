@@ -12,18 +12,19 @@ EXCLUDE_DIR := SI* .git* include* siPro* build
 # 编译选项
 #CROSS_COMPILE ?= arm-linux-gnueabihf-
 #CROSS_COMPILE ?= arm-linux-gnueabi-
+CFLAGS += $(EXTRA_CFLAGS)
 
 ifndef CROSS_COMPILE
 EXCLUDE_DIR := common/zlog
 endif
 
-ifdef TEST_UNIT
-CFLAGS += -DTEST_UNIT=1
-endif
-
 ifdef CROSS_COMPILE
 #外部调用的库
 #LDFLAGS += -L./lib/zlog -lzlog
+endif
+
+ifdef TEST_UNIT
+CFLAGS += -DTEST_UNIT=1
 endif
 
 export VERSION OS_TYPE CROSS_COMPILE
@@ -110,6 +111,7 @@ CFLAGS += $(INC_PATH)
 
 %.o: %.c
 	@echo "$(CC) compiling $<..."
+	@echo "$(CFLAGS)"
 	@test -d $(dir $(OBJ_PATH)$@) || mkdir -p $(dir $(OBJ_PATH)$@)
 	@$(CC) $(CFLAGS) -c -o $(OBJ_PATH)$@ $<
 
