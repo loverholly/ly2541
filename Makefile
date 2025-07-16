@@ -153,3 +153,5 @@ $(BULID_STATIC_LIB) : $(OBJS)
 clean:
 	rm -f $(BUILD_SHARED_LIB) $(BULID_STATIC_LIB)
 	rm -rf $(OBJ_PATH)/*
+	rm -rf test/build
+	rm -rf bin
