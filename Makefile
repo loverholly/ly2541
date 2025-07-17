@@ -105,6 +105,7 @@ CFLAGS += $(INC_PATH)
 .SUFFIXES: .cpp .c
 %.o: %.cpp
 	@echo "$(CXX) compiling $<..."
+	@echo "$(CFLAGS)"
 	@test -d $(dir $(OBJ_PATH)$@) || mkdir -p $(dir $(OBJ_PATH)$@)
 	@$(CXX) $(CFLAGS) -c -o $(OBJ_PATH)$@ $(OBJ_PATH)$<
 
