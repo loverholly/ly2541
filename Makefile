@@ -55,7 +55,7 @@ BIN_NAME := bin
 BIN_PATH := $(TOP_DIR)/$(BIN_NAME)/
 
 # 排除编译中间文件和目标文件
-EXCLUDE_DIR += $(OBJ_NAME)* $(BIN_NAME)* test
+EXCLUDE_DIR += $(OBJ_NAME)* $(BIN_NAME)* test .git/*
 
 # 安装目录
 INSTALL_PATH :=
@@ -89,7 +89,6 @@ SRC_DIRS := $(filter-out $(EXCLUDE_PATH_NAME), $(DIRS))
 INC_PATH += $(foreach dir, $(SRC_DIRS), $(addprefix -I$(SRC_TREE)/, $(dir)))
 
 # 源文件
-#SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.cpp) $(wildcard $(dir)/*.c))
 C_SRCS = $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c))
 CXX_SRCS = $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 
