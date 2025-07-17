@@ -55,7 +55,7 @@ BIN_NAME := bin
 BIN_PATH := $(TOP_DIR)/$(BIN_NAME)/
 
 # 排除编译中间文件和目标文件
-EXCLUDE_DIR += $(OBJ_NAME)* $(BIN_NAME)* test .git/*
+EXCLUDE_DIR += $(OBJ_NAME)* $(BIN_NAME)* test* .git/*
 
 # 安装目录
 INSTALL_PATH :=
