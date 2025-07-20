@@ -33,6 +33,8 @@ u32 fpga_get_vccint(void *handle);
 
 u32 fpga_get_vccaux(void *handle);
 
+u32 fpga_get_version(void *handle);
+
 #ifdef __cplusplus
 }
 #endif

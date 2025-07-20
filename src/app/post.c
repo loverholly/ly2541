@@ -74,7 +74,6 @@ void xdma_wave_post(void *resource)
 		return;
 	}
 
-	printf("open file %d\n", fd);
 	if (fstat(fd, &st) != 0) {
 		printf("stat get file faild!\n");
 		return;
@@ -89,7 +88,7 @@ void xdma_wave_post(void *resource)
 		return;
 	}
 
-	printf("read da done\n");
+	printf("read file %s length %x to buffer done!\n", filename, length);
 
 	/* 1. clear buffer */
 	xdma_mm2s_clr_buf(res, true);
@@ -110,7 +109,7 @@ void xdma_wave_post(void *resource)
 
 	/* 6. set write disable */
 	xdma_mm2s_write_enable(res, false);
-	printf("axi dma send to PL done!\n");
+	printf("send file %s length %x to PL done!\n", filename, length);
 
 	/* sleep(100); */
 	/* xdma_mm2s_set_paly(res, 0); */
@@ -131,6 +130,6 @@ void test_unit(void *resource)
 	if (!IS_ENABLED(TEST_UNIT))
 		return;
 
-	/* res_post(resource); */
+	res_post(resource);
 	xdma_post(resource);
 }

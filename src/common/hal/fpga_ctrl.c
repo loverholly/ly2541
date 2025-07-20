@@ -3,6 +3,7 @@
 
 #define BRAM_BASE_ADDR (0x80003000)
 #define BRAM_SIZE (0x1000)
+#define BRAM_VERSION (0x4)
 #define BRAM_CTRL_REG (0x08)
 #define BRAM_PLAY_ENABLE (0x0C)
 #define BRAM_WRITE_ENABLE (0x10)
@@ -65,7 +66,8 @@ int fpga_bram_write(void *handle, u32 offset, u32 val)
 
 	struct fpga_bram_handle *fpga = handle;
 	pthread_spin_lock(&fpga->spinlock);
-	fpga->base_addr[offset] = val;
+	printf("offset %x val %x\n", offset, val);
+	fpga->base_addr[offset / sizeof(u32)] = val;
 	pthread_spin_unlock(&fpga->spinlock);
 
 	return 0;
@@ -77,7 +79,7 @@ u32 fpga_bram_read(void *handle, u32 offset)
 		return ~0;
 
 	struct fpga_bram_handle *fpga = handle;
-	return fpga->base_addr[offset];
+	return fpga->base_addr[offset / sizeof(u32)];
 }
 
 void fpga_res_close(void *handle)
@@ -137,4 +139,9 @@ u32 fpga_get_vccint(void *handle)
 u32 fpga_get_vccaux(void *handle)
 {
 	return fpga_bram_read(handle, BRAM_VCC_AUX);
+}
+
+u32 fpga_get_version(void *handle)
+{
+	return fpga_bram_read(handle, BRAM_VERSION);
 }

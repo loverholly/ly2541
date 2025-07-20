@@ -26,7 +26,6 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 	resource->fpga_handle = fpga_res_init();
 	resource->server_fd = usr_create_socket(15555);
 	resource->chan0_dma_fd = usr_dma_open("/dev/axidma");
-	printf("%d \n", resource->chan0_dma_fd);
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
 		resource->sock[i].accept_fd = -1;
 		resource->sock[i].size = 64 * 1024;
@@ -197,9 +196,9 @@ void *accept_thread(void *param)
 int main(int argc, char *argv[])
 {
 	usr_thread_res_t resource;
-	version_show();
-
 	usr_thread_resource_init(&resource);
+	version_show(&resource);
+
 	test_unit(&resource);
 
 	if (resource.server_fd != -1) {
@@ -209,7 +208,6 @@ int main(int argc, char *argv[])
 	}
 
 	printf("exit from main thread!\n");
-
 	usr_thread_resource_free(&resource);
 
 	return 0;
