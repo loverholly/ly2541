@@ -20,8 +20,8 @@ void res_post(void *resource)
 void xdma_mm2s_post(void *resource)
 {
 	u32 align = sizeof(u32);
-	/* max support 2MByte */
-	u32 size = 4 * 1024 * align;
+	/* max support 64KByte,due to fpga */
+	u32 size = 16 * 1024 * align;
 	u32 len = size / align;
 	u32 *buf = malloc(size);
 	usr_thread_res_t *res = resource;
@@ -38,16 +38,91 @@ void xdma_mm2s_post(void *resource)
 	free(buf);
 }
 
+void xdma_mm2s_set_length(void *resource, int length)
+{
+	__maybe_unused usr_thread_res_t *res = resource;
+	fpga_dma_set_length(res->fpga_handle, length);
+}
+
+void xdma_mm2s_write_enable(void *resource, bool enable)
+{
+	__maybe_unused usr_thread_res_t *res = resource;
+	fpga_dma_write_enable(res->fpga_handle, enable);
+}
+
+void xdma_mm2s_clr_buf(void *resource, bool clr)
+{
+	__maybe_unused usr_thread_res_t *res = resource;
+	fpga_dma_ctrl_cfg(res->fpga_handle, clr, clr);
+}
+
+void xdma_mm2s_set_play(void *resource, u8 play)
+{
+	__maybe_unused usr_thread_res_t *res = resource;
+	fpga_dma_play_enable(res->fpga_handle, play);
+}
+
 void xdma_wave_post(void *resource)
 {
 	__maybe_unused usr_thread_res_t *res = resource;
+	struct stat st;
+	u32 packet = 64 * 1024;
+	char *filename = "simdata.bin";
+	int fd = open(filename, O_RDWR);
+	if (fd == -1) {
+		printf("open %s test faild!\n", filename);
+		return;
+	}
+
+	printf("open file %d\n", fd);
+	if (fstat(fd, &st) != 0) {
+		printf("stat get file faild!\n");
+		return;
+	}
+
+	u32 length = st.st_size;
+	char *buf = malloc(length);
+	int ret = read(fd, buf, length);
+	if (ret != length) {
+		printf("read file failed!\n");
+		free(buf);
+		return;
+	}
+
+	printf("read da done\n");
+
+	/* 1. clear buffer */
+	xdma_mm2s_clr_buf(res, true);
+	/* 2. set dma length */
+	xdma_mm2s_set_length(res, length);
+	/* 3. set play on repeat mode */
+	xdma_mm2s_set_play(res, 2);
+	/* 4. set write enable */
+	xdma_mm2s_write_enable(res, true);
+	/* 5. axidma send data to pl */
+	for  (int i = 0; i < length / packet; i++) {
+		int ret = usr_dma_write(res->chan0_dma_fd, (char *)((char *)buf + (i * packet)), packet);
+		if (ret != packet) {
+			printf("axidma write to pl failed, pos %d\n", (i * packet) + ret);
+			break;
+		}
+	}
+
+	/* 6. set write disable */
+	xdma_mm2s_write_enable(res, false);
+	printf("axi dma send to PL done!\n");
+
+	/* sleep(100); */
+	/* xdma_mm2s_set_paly(res, 0); */
+	free(buf);
 
 	return;
 }
 
 void xdma_post(void *resource)
 {
-	xdma_mm2s_post(resource);
+	/* xdma_mm2s_post(resource); */
+	xdma_wave_post(resource);
 	return;
 }
 

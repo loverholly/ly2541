@@ -3,6 +3,15 @@
 
 #define BRAM_BASE_ADDR (0x80003000)
 #define BRAM_SIZE (0x1000)
+#define BRAM_CTRL_REG (0x08)
+#define BRAM_PLAY_ENABLE (0x0C)
+#define BRAM_WRITE_ENABLE (0x10)
+#define BRAM_WRITE_LENGTH (0x14)
+#define BRAM_STATUS (0x18)
+#define BRAM_TEMP   (0x1C)
+#define BRAM_VCC_INT (0x20)
+#define BRAM_VCC_AUX (0x24)
+
 struct fpga_bram_handle {
 	int fd;
 	pthread_spinlock_t spinlock;
@@ -80,4 +89,52 @@ void fpga_res_close(void *handle)
 
 	struct fpga_bram_handle *fpga = handle;
 	pthread_spin_destroy(&fpga->spinlock);
+}
+
+void fpga_dma_set_length(void *handle, u32 length)
+{
+	fpga_bram_write(handle, BRAM_WRITE_LENGTH, length / sizeof(u32));
+}
+
+void fpga_dma_write_enable(void *handle, bool enable)
+{
+	fpga_bram_write(handle, BRAM_WRITE_ENABLE, (u32)!!enable);
+}
+
+void fpga_dma_play_enable(void *handle, u8 play)
+{
+	fpga_bram_write(handle, BRAM_PLAY_ENABLE, (u32)play);
+}
+
+void fpga_dma_ctrl_cfg(void *handle, u8 clr, u8 reset)
+{
+	u32 val = fpga_bram_read(handle, BRAM_CTRL_REG);
+
+	if (clr)
+		val |= (!!clr) << 1;
+
+	if (reset)
+		val |= !!reset;
+
+	fpga_bram_write(handle, BRAM_CTRL_REG, val);
+
+	if (clr) {
+		val &= ~((!!clr) << 1);
+		fpga_bram_write(handle, BRAM_CTRL_REG, val);
+	}
+}
+
+u32 fpga_get_temp(void *handle)
+{
+	return fpga_bram_read(handle, BRAM_TEMP);
+}
+
+u32 fpga_get_vccint(void *handle)
+{
+	return fpga_bram_read(handle, BRAM_VCC_INT);
+}
+
+u32 fpga_get_vccaux(void *handle)
+{
+	return fpga_bram_read(handle, BRAM_VCC_AUX);
 }
