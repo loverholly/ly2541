@@ -44,6 +44,7 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 	resource->fpga_handle = fpga_res_init();
 	resource->server_fd = usr_create_socket(15555);
 	resource->chan0_dma_fd = usr_dma_open("/dev/axidma");
+	printf("%d \n", resource->chan0_dma_fd);
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
 		resource->sock[i].accept_fd = -1;
 		resource->sock[i].size = 64 * 1024;
@@ -225,15 +226,22 @@ void res_post(usr_thread_res_t *res)
 
 void xdma_post(usr_thread_res_t *res)
 {
-	int size = 8 * 1024 * 1024 * sizeof(u16);
-	u16 *buf = malloc(size);
-	for (int i = 0; i < size; i++) {
-		buf[i] = i;
-	}
-	int len = write(res->chan0_dma_fd, buf, size);
-	if (len < 0)
-		printf("write dma err!\n");
+	u32 align = sizeof(u32);
+	/* max support 2MByte */
+	u32 size = 512 * 1024 * align;
+	u32 len = size / align;
+	u32 *buf = malloc(size);
 
+	for (u32 j = 0; j < 500; j++) {
+		for (u32 i = 0; i < len; i++) {
+			buf[i] = i;
+		}
+
+		int len = usr_dma_write(res->chan0_dma_fd, (char *)buf, size);
+		printf("write dma 0x%x times %d\n", len, j);
+	}
+
+	free(buf);
 	return;
 }
 
