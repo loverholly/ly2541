@@ -20,8 +20,6 @@ typedef struct {
 typedef struct {
 	int server_fd;
 	int chan0_dma_fd;
-	int chan1_dma_fd;
-	int chan2_dma_fd;
 	int cpu_affinity;
 	void *fpga_handle;
 	buf_res_t sock[3 - TCP_SEND_MUTEX];
@@ -45,9 +43,7 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 
 	resource->fpga_handle = fpga_res_init();
 	resource->server_fd = usr_create_socket(15555);
-	resource->chan0_dma_fd = usr_dma_open("/dev/dma_dev");
-	resource->chan1_dma_fd = usr_dma_open("/dev/dma_dev1");
-	resource->chan2_dma_fd = usr_dma_open("/dev/dma_dev2");
+	resource->chan0_dma_fd = usr_dma_open("/dev/axidma");
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
 		resource->sock[i].accept_fd = -1;
 		resource->sock[i].size = 64 * 1024;
@@ -67,8 +63,6 @@ int usr_thread_resource_free(usr_thread_res_t *resource)
 
 	usr_close_socket(resource->server_fd);
 	usr_dma_close(resource->chan0_dma_fd);
-	usr_dma_close(resource->chan1_dma_fd);
-	usr_dma_close(resource->chan2_dma_fd);
 	fpga_res_close(resource->fpga_handle);
 	serial_free(resource->recv_uart);
 	serial_free(resource->proc_uart);
@@ -231,6 +225,14 @@ void res_post(usr_thread_res_t *res)
 
 void xdma_post(usr_thread_res_t *res)
 {
+	int size = 8 * 1024 * 1024 * sizeof(u16);
+	u16 *buf = malloc(size);
+	for (int i = 0; i < size; i++) {
+		buf[i] = i;
+	}
+	int len = write(res->chan0_dma_fd, buf, size);
+	if (len < 0)
+		printf("write dma err!\n");
 
 	return;
 }
