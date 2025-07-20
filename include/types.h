@@ -18,6 +18,10 @@ typedef unsigned long long u64;
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
+#define __always_unused                 __attribute__((__unused__))
+#define __maybe_unused                  __attribute__((__unused__))
+#define __used                          __attribute__((__used__))
+
 #include <stdbool.h>
 #include "compiler_gcc.h"
 

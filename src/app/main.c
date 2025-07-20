@@ -7,25 +7,7 @@
 #include "usr_net_cmd.h"
 #include "fpga_ctrl.h"
 #include "serial.h"
-
-typedef struct {
-	int accept_fd;
-	pthread_mutex_t mutex;
-	char *buf;
-	int size;
-} buf_res_t;
-
-#define TCP_SEND_MUTEX 1
-
-typedef struct {
-	int server_fd;
-	int chan0_dma_fd;
-	int cpu_affinity;
-	void *fpga_handle;
-	buf_res_t sock[3 - TCP_SEND_MUTEX];
-	serial_t *recv_uart;	/* recv cmd from the uart */
-	serial_t *proc_uart;	/* send uart data to device */
-} usr_thread_res_t;
+#include "post.h"
 
 
 int usr_thread_invalid_check(usr_thread_res_t *resource)
@@ -211,49 +193,6 @@ void *accept_thread(void *param)
 
 	return NULL;
 }
-
-void res_post(usr_thread_res_t *res)
-{
-	for (int i = 0; i < 8; i++) {
-		int val = i;
-		fpga_bram_write(res->fpga_handle, i, val);
-		int tval = fpga_bram_read(res->fpga_handle, i);
-		if (true || tval != val) {
-			printf("offset %d error ori 0x%x real 0x%x\n", i, val, tval);
-		}
-	}
-}
-
-void xdma_post(usr_thread_res_t *res)
-{
-	u32 align = sizeof(u32);
-	/* max support 2MByte */
-	u32 size = 512 * 1024 * align;
-	u32 len = size / align;
-	u32 *buf = malloc(size);
-
-	for (u32 j = 0; j < 500; j++) {
-		for (u32 i = 0; i < len; i++) {
-			buf[i] = i;
-		}
-
-		int len = usr_dma_write(res->chan0_dma_fd, (char *)buf, size);
-		printf("write dma 0x%x times %d\n", len, j);
-	}
-
-	free(buf);
-	return;
-}
-
-void test_unit(usr_thread_res_t *res)
-{
-	if (!IS_ENABLED(TEST_UNIT))
-		return;
-
-	res_post(res);
-	xdma_post(res);
-}
-
 
 int main(int argc, char *argv[])
 {
