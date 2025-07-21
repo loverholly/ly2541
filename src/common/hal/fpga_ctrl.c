@@ -66,7 +66,6 @@ int fpga_bram_write(void *handle, u32 offset, u32 val)
 
 	struct fpga_bram_handle *fpga = handle;
 	pthread_spin_lock(&fpga->spinlock);
-	printf("offset %x val %x\n", offset, val);
 	fpga->base_addr[offset / sizeof(u32)] = val;
 	pthread_spin_unlock(&fpga->spinlock);
 

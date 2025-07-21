@@ -11,7 +11,7 @@ void res_post(void *resource)
 		int val = i;
 		fpga_bram_write(res->fpga_handle, i, val);
 		int tval = fpga_bram_read(res->fpga_handle, i);
-		if (true || tval != val) {
+		if (tval != val) {
 			printf("offset %d error ori 0x%x real 0x%x\n", i, val, tval);
 		}
 	}
