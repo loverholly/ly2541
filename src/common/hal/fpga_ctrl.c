@@ -59,6 +59,11 @@ void *fpga_res_init(void)
 	return fpga;
 }
 
+__always_inline u32 fpga_get_offset(u32 offset)
+{
+	return offset / sizeof(u32);
+}
+
 int fpga_bram_write(void *handle, u32 offset, u32 val)
 {
 	if (fpga_res_check(handle, offset) == -1)
@@ -66,7 +71,7 @@ int fpga_bram_write(void *handle, u32 offset, u32 val)
 
 	struct fpga_bram_handle *fpga = handle;
 	pthread_spin_lock(&fpga->spinlock);
-	fpga->base_addr[offset / sizeof(u32)] = val;
+	fpga->base_addr[fpga_get_offset(offset)] = val;
 	pthread_spin_unlock(&fpga->spinlock);
 
 	return 0;
@@ -78,7 +83,7 @@ u32 fpga_bram_read(void *handle, u32 offset)
 		return ~0;
 
 	struct fpga_bram_handle *fpga = handle;
-	return fpga->base_addr[offset / sizeof(u32)];
+	return fpga->base_addr[fpga_get_offset(offset)];
 }
 
 void fpga_res_close(void *handle)

@@ -22,6 +22,10 @@ typedef unsigned long long u64;
 #define __maybe_unused                  __attribute__((__unused__))
 #define __used                          __attribute__((__used__))
 
+#ifndef __always_inline
+#define __always_inline inline __attribute__ ((always_inline))
+#endif /* __always_inline */
+
 #include <stdbool.h>
 #include "compiler_gcc.h"
 
