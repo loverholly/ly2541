@@ -105,18 +105,16 @@ CFLAGS += $(INC_PATH)
 .SUFFIXES: .cpp .c
 %.o: %.cpp
 	@echo "$(CXX) compiling $<..."
-	@echo "$(CFLAGS)"
 	@test -d $(dir $(OBJ_PATH)$@) || mkdir -p $(dir $(OBJ_PATH)$@)
 	@$(CXX) $(CFLAGS) -c -o $(OBJ_PATH)$@ $(OBJ_PATH)$<
 
 %.o: %.c
 	@echo "$(CC) compiling $<..."
-	@echo "$(CFLAGS)"
 	@test -d $(dir $(OBJ_PATH)$@) || mkdir -p $(dir $(OBJ_PATH)$@)
 	@$(CC) $(CFLAGS) -c -o $(OBJ_PATH)$@ $<
 
 .PHONY: all version
-all: version $(BUILD_APP)  $(OBJS)
+all: version $(BUILD_APP) $(OBJS)
 
 GIT_VERSION = $(shell git log -n 1 --pretty=format:"%h")
 RELEASE_VERSION = $(shell git describe --tags --abbrev=0)
@@ -135,23 +133,22 @@ version:
 	@mv version.h include/
 
 $(BUILD_APP) : $(OBJS)
-	@echo "$(CXX) link target $@"
+	@echo "$(CC) link target $@"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(CC) $(CFLAGS) -o $(BUILD_APP) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj)) $(LDFLAGS)
 
 $(BUILD_SHARED_LIB) : $(OBJS)
-	@echo "$(CXX) link target $@"
+	@echo "$(CC) link target $@"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(CC) $(CFLAGS) -shared -fPIC -o $(BUILD_SHARED_LIB) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj))
 
 $(BULID_STATIC_LIB) : $(OBJS)
-	@echo "$(CXX) linking target $@"
+	@echo "$(CC) linking target $@"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(AR) rcs $(BULID_STATIC_LIB) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj))
 
 .PHONY:clean
 clean:
-	rm -f $(BUILD_SHARED_LIB) $(BULID_STATIC_LIB)
-	rm -rf $(OBJ_PATH)/*
-	rm -rf test/build
-	rm -rf bin
+	rm -rf $(OBJ_PATH)
+	rm -rf $(TOP_DIR)/test/build
+	rm -rf $(BIN_PATH)
