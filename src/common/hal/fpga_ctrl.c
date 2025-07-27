@@ -12,6 +12,7 @@
 #define BRAM_TEMP   (0x1C)
 #define BRAM_VCC_INT (0x20)
 #define BRAM_VCC_AUX (0x24)
+#define BRAM_DAC_EN  (0x28)
 
 struct fpga_bram_handle {
 	int fd;
@@ -148,4 +149,9 @@ u32 fpga_get_vccaux(void *handle)
 u32 fpga_get_version(void *handle)
 {
 	return fpga_bram_read(handle, BRAM_VERSION);
+}
+
+void fpga_dac_enable(void *handle, bool enable)
+{
+	fpga_bram_write(handle, BRAM_DAC_EN, !!enable);
 }

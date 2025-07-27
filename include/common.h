@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include <getopt.h>
 #include <poll.h>
+#include <dirent.h>
+#include <limits.h>
 
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
@@ -23,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/time.h>
+#include <sys/statvfs.h>
 
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
@@ -33,10 +36,12 @@
 #include "types.h"
 #include "compiler_gcc.h"
 
-#if DEBUG
+#ifdef DEBUG
 #define sys_assert assert
+#define dbg_printf(fmt, ...)  printf("[%s:%s:%d] " fmt, __FILE__, __func__, __LINE__, ##__VA_ARGS__)
 #else
 #define sys_assert do {} while (0)
+#define dbg_printf(fmt, ...) do {} while (0)
 #endif /* DEBUG */
 
 #endif	/* __COMMON_H__ */

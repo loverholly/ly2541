@@ -11,7 +11,7 @@ typedef struct {
 	u16 frame_header;	/* tcp frame header */
 	u16 frame_length;	/* tcp frame length, include net_cmd_hdr_t */
 	u16 frame_cmd;		/* tcp fram cmd type */
-} net_cmd_hdr_t;
+} __packed net_cmd_hdr_t;
 
 typedef enum {
 	NET_CMD_DEV_STS     = 0xA000, /* tcp cmd status of device */
@@ -21,10 +21,27 @@ typedef enum {
 	NET_CMD_INVALID     = 0xFFFF, /* tcp cmd invalid net cmd */
 } net_cmd_type_t;
 
-int usr_net_period_feedback_cmd(int fd, char *buf, int size);
-int usr_net_get_dev_sts(int fd, char *buf, int size);
-int usr_net_chan_config(int fd, char *buf, int size);
-int usr_net_change_ip(int fd, char *buf, int size);
+__always_inline int usr_net_cmd_hdr_size(void)
+{
+	return sizeof(net_cmd_hdr_t);
+}
+
+typedef struct {
+	char *rcv_buf;
+	int rcv_size;
+	char *snd_buf;
+	int snd_size;
+	void *private;
+} cfg_param_t;
+
+int usr_net_get_dev_sts(cfg_param_t *cfg);
+int usr_net_chan_config(cfg_param_t *cfg);
+int usr_net_change_ip(cfg_param_t *cfg);
+int usr_net_ctrl_replay(cfg_param_t *cfg);
+int usr_net_get_pack_size(void *header);
+int usr_net_period_feedback_cmd(cfg_param_t *cfg);
+int usr_net_cmd_handler(cfg_param_t *cfg);
+int usr_net_tail_is_valid(char *buf);
 
 #ifdef __cplusplus
 }

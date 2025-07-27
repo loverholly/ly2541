@@ -13,7 +13,7 @@
 		 * warnings (regardless of the build failing).		\
 		 */							\
 		__noreturn extern void prefix ## suffix(void)		\
-			__compiletime_error(msg);			\
+		__compiletime_error(msg);			\
 		if (!(condition))					\
 			prefix ## suffix();				\
 	} while (0)
@@ -38,7 +38,7 @@
 
 #define compiletime_assert_atomic_type(t)				\
 	compiletime_assert(__native_word(t),				\
-		"Need native word sized stores/loads for atomicity.")
+	                   "Need native word sized stores/loads for atomicity.")
 
 #ifdef __CHECKER__
 #define BUILD_BUG_ON_ZERO(e) (0)

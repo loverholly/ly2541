@@ -35,6 +35,8 @@ u32 fpga_get_vccaux(void *handle);
 
 u32 fpga_get_version(void *handle);
 
+void fpga_dac_enable(void *handle, bool enable);
+
 #ifdef __cplusplus
 }
 #endif

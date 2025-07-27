@@ -38,33 +38,33 @@ void xdma_mm2s_post(void *resource)
 	free(buf);
 }
 
-void xdma_mm2s_set_length(void *resource, int length)
+static void xdma_mm2s_set_length(void *resource, int length)
 {
-	__maybe_unused usr_thread_res_t *res = resource;
+	__unused usr_thread_res_t *res = resource;
 	fpga_dma_set_length(res->fpga_handle, length);
 }
 
-void xdma_mm2s_write_enable(void *resource, bool enable)
+static void xdma_mm2s_write_enable(void *resource, bool enable)
 {
-	__maybe_unused usr_thread_res_t *res = resource;
+	__unused usr_thread_res_t *res = resource;
 	fpga_dma_write_enable(res->fpga_handle, enable);
 }
 
-void xdma_mm2s_clr_buf(void *resource, bool clr)
+static void xdma_mm2s_clr_buf(void *resource, bool clr)
 {
-	__maybe_unused usr_thread_res_t *res = resource;
+	__unused usr_thread_res_t *res = resource;
 	fpga_dma_ctrl_cfg(res->fpga_handle, clr, clr);
 }
 
-void xdma_mm2s_set_play(void *resource, u8 play)
+static void xdma_mm2s_set_play(void *resource, u8 play)
 {
-	__maybe_unused usr_thread_res_t *res = resource;
+	__unused usr_thread_res_t *res = resource;
 	fpga_dma_play_enable(res->fpga_handle, play);
 }
 
 void xdma_wave_post(void *resource)
 {
-	__maybe_unused usr_thread_res_t *res = resource;
+	__unused usr_thread_res_t *res = resource;
 	struct stat st;
 	u32 packet = 64 * 1024;
 	char *filename = "simdata.bin";
@@ -99,7 +99,7 @@ void xdma_wave_post(void *resource)
 	/* 4. set write enable */
 	xdma_mm2s_write_enable(res, true);
 	/* 5. axidma send data to pl */
-	for  (int i = 0; i < length / packet; i++) {
+	for (int i = 0; i < length / packet; i++) {
 		int ret = usr_dma_write(res->chan0_dma_fd, (char *)((char *)buf + (i * packet)), packet);
 		if (ret != packet) {
 			printf("axidma write to pl failed, pos %d\n", (i * packet) + ret);

@@ -17,10 +17,10 @@ int usr_create_socket(int port)
 		return -1;
 	}
 
-	setsockopt(listen_fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive , sizeof(keepalive));
-	setsockopt(listen_fd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepidle , sizeof(keepidle));
-	setsockopt(listen_fd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepinterval , sizeof(keepinterval));
-	setsockopt(listen_fd, SOL_TCP, TCP_KEEPCNT, (void *)&keepcount , sizeof(keepcount));
+	setsockopt(listen_fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive, sizeof(keepalive));
+	setsockopt(listen_fd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepidle, sizeof(keepidle));
+	setsockopt(listen_fd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepinterval, sizeof(keepinterval));
+	setsockopt(listen_fd, SOL_TCP, TCP_KEEPCNT, (void *)&keepcount, sizeof(keepcount));
 
 	if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
 		printf("%s setsockopt error:%s\n", __func__, strerror(errno));

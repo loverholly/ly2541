@@ -18,13 +18,14 @@ typedef unsigned long long u64;
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-#define __always_unused                 __attribute__((__unused__))
-#define __maybe_unused                  __attribute__((__unused__))
+#define __unused                        __attribute__((__unused__))
 #define __used                          __attribute__((__used__))
+#define __packed                        __attribute__((packed))
 
 #ifndef __always_inline
 #define __always_inline inline __attribute__ ((always_inline))
 #endif /* __always_inline */
+
 
 #include <stdbool.h>
 #include "compiler_gcc.h"
