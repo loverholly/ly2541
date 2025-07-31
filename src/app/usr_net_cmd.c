@@ -103,7 +103,7 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	dbg_printf("handle %p\n", handle);
 	/* get latest access file */
 	if (last_access_file("/opt/singal/", latest, NULL) == 0)
-		strncpy(filename, latest, strlen(latest));
+		strcpy(filename, latest);
 
 	rep_size = 18 + strlen(filename);
 	dbg_printf("rep_size %x\n", rep_size);

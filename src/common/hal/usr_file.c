@@ -35,7 +35,7 @@ int last_access_file(const char *dirpath, char *latest, char *second)
 		if (stat(path, &st) == -1)
 			continue;
 
-		strncpy(buf[n].name, de->d_name, NAME_MAX);
+		strcpy(buf[n].name, de->d_name);
 		buf[n].name[NAME_MAX] = '\0';
 		buf[n].mtime = st.st_mtime;
 		++n;

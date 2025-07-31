@@ -12,6 +12,9 @@
 #include <poll.h>
 #include <dirent.h>
 #include <limits.h>
+#include <signal.h>
+#include <time.h>
+#include <stdint.h>
 
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
