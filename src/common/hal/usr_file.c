@@ -67,7 +67,7 @@ int last_access_file(const char *dirpath, char *latest, char *second)
 
 int find_file_in_path(char *dirname, const char *filename, char *outpath)
 {
-	if (!filename || !outpath) {
+	if (!filename) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -75,7 +75,6 @@ int find_file_in_path(char *dirname, const char *filename, char *outpath)
 	DIR *d = opendir(dirname);
 	if (!d)
 		return -1;          /* errno 已由 opendir 设置 */
-
 	struct dirent *ent;
 	int found = 0;
 

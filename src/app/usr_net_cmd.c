@@ -10,14 +10,16 @@
 #define NAME_LEN (NAME_MAX + 1)
 typedef struct {
 	u16 cmd;
+	char *str;
 	int (*callback)(cfg_param_t *cfg);
 } net_cmd_tbl_t;
+#define CMD_ENTRY(cmd, callback) {cmd, #cmd, callback}
 
 net_cmd_tbl_t cmd_tbl[] = {
-	{NET_CMD_DEV_STS, usr_net_get_dev_sts},
-	{NET_CMD_CHANGE_IP, usr_net_change_ip},
-	{NET_CMD_CHAN_CONFIG, usr_net_chan_config},
-	{NET_CMD_REPLAY_CTRL, usr_net_ctrl_replay},
+	CMD_ENTRY(NET_CMD_DEV_STS, usr_net_get_dev_sts),
+	CMD_ENTRY(NET_CMD_CHANGE_IP, usr_net_change_ip),
+	CMD_ENTRY(NET_CMD_CHAN_CONFIG, usr_net_chan_config),
+	CMD_ENTRY(NET_CMD_REPLAY_CTRL, usr_net_ctrl_replay),
 };
 
 int little_endian_byte_set(char *buf, u8 var)
@@ -174,7 +176,7 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 	/* 1. clear buffer */
 	usr_mm2s_clr_buf(res, true);
 	/* 2. set dma length */
-	usr_mm2s_set_length(res, length);
+	usr_mm2s_set_length(res, file_len);
 	/* 3. set play on repeat mode */
 	usr_mm2s_set_play(res, 2);
 	/* 4. set write enable */
@@ -218,16 +220,19 @@ int usr_net_chan_config(cfg_param_t *cfg)
 	int name_len = pack_size - TAIL_SIZE - hdr_size;
 	char filename[NAME_LEN] = {0};
 
+	dbg_printf("chan %d enable %d\n", chan, enable);
 	if (name_len < NAME_MAX) {
 		memcpy(filename, &rcv_buf[hdr_pos], name_len);
 		filename[name_len] = 0;
+		dbg_printf("filename %s\n", filename);
 
 		/* check the file exist */
-		if (find_file_in_path("/opt/singal/", filename, NULL) == 0)
+		if (find_file_in_path("/opt/signal", filename, NULL) == 0)
 			done = 1;
 
 		if (done && chan == 1) {
-			int fd = open_in_dir("/opt/singal", filename);
+			int fd = open_in_dir("/opt/signal", filename);
+			dbg_printf("display %s\n", filename);
 			usr_net_xdma_play(fd, filename, cfg->private);
 		} else {
 			done = 0;
@@ -338,11 +343,11 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 
 	for (int i = 0; i < tbl_size; i++) {
 		if (cmd_tbl[i].cmd == hdr->frame_cmd) {
-			dbg_printf("net cmd 0x%x\n", hdr->frame_cmd);
+			dbg_printf("net cmd 0x%x %s\n", cmd_tbl[i].cmd, cmd_tbl[i].str);
 			return cmd_tbl[i].callback(cfg);
 		}
 	}
 
-	printf("net cmd %d invalid\n", hdr->frame_cmd);
+	printf("net cmd %x invalid\n", hdr->frame_cmd);
 	return -1;
 }
