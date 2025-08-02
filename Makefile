@@ -23,8 +23,6 @@ ifdef CROSS_COMPILE
 #LDFLAGS += -L./lib/zlog -lzlog
 endif
 
-LDFLAGS += -lrt
-
 ifdef TEST_UNIT
 CFLAGS += -DTEST_UNIT=1
 endif

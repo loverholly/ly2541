@@ -31,8 +31,12 @@ OBJS := $(C_OBJS) $(CXX_OBJS)
 # build type, debug or release
 ifeq ($(strip $(BUILD_TYPE)), DEBUG)
 CFLAGS += -g
-CFLAGS += -static
 CFLAGS += -DDEBUG
+endif
+
+# just support on x86 host, or some platform support the static link libarry.
+ifeq ($(strip CROSS_COMPILE)), )
+CFLAGS += -static
 endif
 
 ifeq ($(strip $(BUILD_TYPE)), RELEASE)
@@ -46,7 +50,7 @@ CFLAGS += -D_FILE_OFFSET_BITS=64
 CFLAGS   += -Wall -DPROG_VERSION=\"$(VERSION)\" -D$(OS_TYPE)
 
 # 依赖库
-LDFLAGS += -lpthread  -lc -ldl -lm
+LDFLAGS += -lpthread -lc -ldl -lm -lrt
 
 
 DUMFLAGS +=

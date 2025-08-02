@@ -147,7 +147,7 @@ size_t get_fdisk_size(void)
 	}
 
 	disk_size = s.f_frsize * s.f_blocks;
-	dbg_printf("disk full size %ld\n", disk_size);
+	dbg_printf("disk full size %ld\n", (unsigned long)disk_size);
 	return disk_size;
 }
 
@@ -161,6 +161,6 @@ size_t get_fdisk_free(void)
 	}
 
 	disk_size = st.f_bavail * st.f_frsize;
-	dbg_printf("disk free size %ld\n", disk_size);
+	dbg_printf("disk free size %ld\n", (unsigned long)disk_size);
 	return disk_size;
 }
