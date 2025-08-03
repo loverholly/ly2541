@@ -272,7 +272,8 @@ int usr_net_change_ip(cfg_param_t *cfg)
 		return ret;
 
 	if (pack_size <= ARRAY_SIZE(ip)) {
-		memcpy(ip, &buf[hdr_size], pack_size - hdr_size - TAIL_SIZE);
+		memcpy(ip, &rcv_buf[hdr_size], pack_size - hdr_size - TAIL_SIZE);
+		dbg_printf("host set ip %s\n", ip);
 		if (set_eth0_static_ip(ip, "255.255.255.0", NULL) != -1)
 			done = 1;
 	}
