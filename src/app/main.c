@@ -171,6 +171,7 @@ void *accept_thread(void *param)
 		struct linger linger_opt;
 		pthread_t new_recv_connect;
 		pthread_t new_period_connect;
+		struct timeval tv = { .tv_sec = 3 };
 		int res_size = ARRAY_SIZE(resource->sock);
 		int accept_fd = usr_accept_socket(resource->server_fd);
 
@@ -197,6 +198,8 @@ void *accept_thread(void *param)
 		linger_opt.l_onoff = 1;
 		linger_opt.l_linger = 0;
 		setsockopt(accept_fd, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
+		setsockopt(accept_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+		setsockopt(accept_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &resource->sock[0], NULL);
 		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &resource->sock[1], NULL);
 		usr_thread_detach(new_recv_connect);

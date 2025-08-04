@@ -133,28 +133,24 @@ end:
 	return ret;
 }
 
-void usr_mm2s_set_length(void *resource, int length)
+void usr_mm2s_set_length(void *handle, int length)
 {
-	__unused usr_thread_res_t *res = resource;
-	fpga_dma_set_length(res->fpga_handle, length);
+	fpga_dma_set_length(handle, length);
 }
 
-void usr_mm2s_write_enable(void *resource, bool enable)
+void usr_mm2s_write_enable(void *handle, bool enable)
 {
-	__unused usr_thread_res_t *res = resource;
-	fpga_dma_write_enable(res->fpga_handle, enable);
+	fpga_dma_write_enable(handle, enable);
 }
 
-void usr_mm2s_clr_buf(void *resource, bool clr)
+void usr_mm2s_clr_buf(void *handle, bool clr)
 {
-	__unused usr_thread_res_t *res = resource;
-	fpga_dma_ctrl_cfg(res->fpga_handle, clr, clr);
+	fpga_dma_ctrl_cfg(handle, clr, clr);
 }
 
-void usr_mm2s_set_play(void *resource, u8 play)
+void usr_mm2s_set_play(void *handle, u8 play)
 {
-	__unused usr_thread_res_t *res = resource;
-	fpga_dma_play_enable(res->fpga_handle, play);
+	fpga_dma_play_enable(handle, play);
 }
 
 
@@ -172,15 +168,16 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 	int length = 256 * 1024 * 1024;
 	char *buf = malloc(length);
 	size_t file_len = st.st_size;
+	void *handle = res->fpga_handle;
 
 	/* 1. clear buffer */
-	usr_mm2s_clr_buf(res, true);
+	usr_mm2s_clr_buf(handle, true);
 	/* 2. set dma length */
-	usr_mm2s_set_length(res, file_len);
+	usr_mm2s_set_length(handle, file_len);
 	/* 3. set play on repeat mode */
-	usr_mm2s_set_play(res, 2);
+	usr_mm2s_set_play(handle, 2);
 	/* 4. set write enable */
-	usr_mm2s_write_enable(res, true);
+	usr_mm2s_write_enable(handle, true);
 
 	while (off < file_len) {
 		readlen = read(fd, buf, length);
@@ -197,7 +194,7 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 		}
 	}
 	/* 6. set write disable */
-	usr_mm2s_write_enable(res, false);
+	usr_mm2s_write_enable(handle, false);
 	printf("send file %s length %x to PL done!\n", filename, length);
 
 	free(buf);
@@ -349,6 +346,6 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 		}
 	}
 
-	printf("net cmd %x invalid\n", hdr->frame_cmd);
+	printf("net cmd 0x%x invalid\n", hdr->frame_cmd);
 	return -1;
 }
