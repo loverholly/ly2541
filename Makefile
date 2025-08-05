@@ -127,7 +127,7 @@ version:
 	@echo "#define GIT_VERSION \"$(GIT_VERSION)\"" >> version.h
 	@echo "#define RELEASE_VERSION \"$(RELEASE_VERSION)\"" >> version.h
 	@echo "" >> version.h
-	@echo "void version_show(void *resource);" >> version.h
+	@echo "void version_show(void);" >> version.h
 	@echo "" >> version.h
 	@echo "#endif /* __VERSION_H__ */" >> version.h
 	@mv version.h include/

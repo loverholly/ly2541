@@ -7,7 +7,6 @@
 #include "usr_net_cmd.h"
 #include "fpga_ctrl.h"
 #include "serial.h"
-#include "post.h"
 
 int usr_thread_invalid_check(usr_thread_res_t *resource)
 {
@@ -213,9 +212,7 @@ int main(int argc, char *argv[])
 {
 	usr_thread_res_t resource;
 	usr_thread_resource_init(&resource);
-	version_show(&resource);
-
-	test_unit(&resource);
+	version_show();
 
 	if (resource.server_fd != -1) {
 		pthread_t server_tid;

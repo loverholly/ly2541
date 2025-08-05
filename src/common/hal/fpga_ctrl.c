@@ -20,9 +20,12 @@ struct fpga_bram_handle {
 	u32 *base_addr;
 };
 
-static struct fpga_bram_handle fpga_bram;
+static struct fpga_bram_handle fpga_bram = {
+	.fd = -1,
+	.base_addr = NULL,
+};
 
-static inline struct fpga_bram_handle *fpga_handle_get(void)
+static inline struct fpga_bram_handle *fpga_get_handle(void)
 {
 	return &fpga_bram;
 }
@@ -32,16 +35,20 @@ static inline int fpga_res_check(void *handle, u32 offset)
 	if (handle == NULL || offset >= (BRAM_SIZE / sizeof(u32)))
 		return -1;
 
+	struct fpga_bram_handle *fpga = handle;
+	if (fpga->fd == -1 || fpga->base_addr == 0)
+		return -1;
+
 	return 0;
 }
 
 void *fpga_res_init(void)
 {
-	struct fpga_bram_handle *fpga = fpga_handle_get();
+	struct fpga_bram_handle *fpga = fpga_get_handle();
 	char *devname = "/dev/mem";
 
 	if ((fpga->fd = open(devname, O_RDWR)) < 0) {
-		printf("%s open %s failed\n", __func__, devname);
+		printf("%s open %s fd %d base %p failed\n", __func__, devname, fpga->fd, fpga->base_addr);
 		return NULL;
 	}
 
@@ -98,24 +105,24 @@ void fpga_res_close(void *handle)
 	pthread_spin_destroy(&fpga->spinlock);
 }
 
-void fpga_dma_set_length(void *handle, u32 length)
+void fpga_dma_set_length(u32 length)
 {
-	fpga_bram_write(handle, BRAM_WRITE_LENGTH, length / sizeof(u32));
+	fpga_bram_write(fpga_get_handle(), BRAM_WRITE_LENGTH, length / sizeof(u32));
 }
 
-void fpga_dma_write_enable(void *handle, bool enable)
+void fpga_dma_write_enable(bool enable)
 {
-	fpga_bram_write(handle, BRAM_WRITE_ENABLE, (u32)!!enable);
+	fpga_bram_write(fpga_get_handle(), BRAM_WRITE_ENABLE, (u32)!!enable);
 }
 
-void fpga_dma_play_enable(void *handle, u8 play)
+void fpga_dma_play_enable(u8 play)
 {
-	fpga_bram_write(handle, BRAM_PLAY_ENABLE, (u32)play);
+	fpga_bram_write(fpga_get_handle(), BRAM_PLAY_ENABLE, (u32)play);
 }
 
-void fpga_dma_ctrl_cfg(void *handle, u8 clr, u8 reset)
+void fpga_dma_ctrl_cfg(u8 clr, u8 reset)
 {
-	u32 val = fpga_bram_read(handle, BRAM_CTRL_REG);
+	u32 val = fpga_bram_read(fpga_get_handle(), BRAM_CTRL_REG);
 
 	if (clr)
 		val |= (!!clr) << 1;
@@ -123,35 +130,35 @@ void fpga_dma_ctrl_cfg(void *handle, u8 clr, u8 reset)
 	if (reset)
 		val |= !!reset;
 
-	fpga_bram_write(handle, BRAM_CTRL_REG, val);
+	fpga_bram_write(fpga_get_handle(), BRAM_CTRL_REG, val);
 
 	if (clr) {
 		val &= ~((!!clr) << 1);
-		fpga_bram_write(handle, BRAM_CTRL_REG, val);
+		fpga_bram_write(fpga_get_handle(), BRAM_CTRL_REG, val);
 	}
 }
 
-u32 fpga_get_temp(void *handle)
+u32 fpga_get_temp(void)
 {
-	return fpga_bram_read(handle, BRAM_TEMP);
+	return fpga_bram_read(fpga_get_handle(), BRAM_TEMP);
 }
 
-u32 fpga_get_vccint(void *handle)
+u32 fpga_get_vccint(void)
 {
-	return fpga_bram_read(handle, BRAM_VCC_INT);
+	return fpga_bram_read(fpga_get_handle(), BRAM_VCC_INT);
 }
 
-u32 fpga_get_vccaux(void *handle)
+u32 fpga_get_vccaux(void)
 {
-	return fpga_bram_read(handle, BRAM_VCC_AUX);
+	return fpga_bram_read(fpga_get_handle(), BRAM_VCC_AUX);
 }
 
-u32 fpga_get_version(void *handle)
+u32 fpga_get_version(void)
 {
-	return fpga_bram_read(handle, BRAM_VERSION);
+	return fpga_bram_read(fpga_get_handle(), BRAM_VERSION);
 }
 
-void fpga_dac_enable(void *handle, bool enable)
+void fpga_dac_enable(bool enable)
 {
-	fpga_bram_write(handle, BRAM_DAC_EN, !!enable);
+	fpga_bram_write(fpga_get_handle(), BRAM_DAC_EN, !!enable);
 }

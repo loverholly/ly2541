@@ -16,26 +16,26 @@ u32 fpga_bram_read(void *handle, u32 offset);
 
 void fpga_res_close(void *handle);
 
-void fpga_dma_set_length(void *handle, u32 length);
+void fpga_dma_set_length(u32 length);
 
-void fpga_dma_write_enable(void *handle, bool enable);
+void fpga_dma_write_enable(bool enable);
 /* play:01b----> single play
  *      10b----> repeat play
  *	00b----> stop play
  */
-void fpga_dma_play_enable(void *handle, u8 play);
+void fpga_dma_play_enable(u8 play);
 
-void fpga_dma_ctrl_cfg(void *handle, u8 clr, u8 reset);
+void fpga_dma_ctrl_cfg(u8 clr, u8 reset);
 
-u32 fpga_get_temp(void *handle);
+u32 fpga_get_temp(void);
 
-u32 fpga_get_vccint(void *handle);
+u32 fpga_get_vccint(void);
 
-u32 fpga_get_vccaux(void *handle);
+u32 fpga_get_vccaux(void);
 
-u32 fpga_get_version(void *handle);
+u32 fpga_get_version(void);
 
-void fpga_dac_enable(void *handle, bool enable);
+void fpga_dac_enable(bool enable);
 
 #ifdef __cplusplus
 }

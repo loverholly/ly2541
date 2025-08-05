@@ -119,7 +119,7 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	pos += little_endian_dword_set(&buf[pos], (int)disk_free);
 	float disk_size = get_fdisk_size();
 	pos += little_endian_dword_set(&buf[pos], (int)disk_size);
-	u8 fpga_status = fpga_get_version(handle) != ~0 ? 1 : 0;
+	u8 fpga_status = fpga_get_version() != ~0 ? 1 : 0;
 	pos += little_endian_byte_set(&buf[pos], fpga_status);
 	pos += little_endian_byte_set(&buf[pos], chan_num);
 	for (int i = 0; i < strlen(filename); i++) {
@@ -133,24 +133,24 @@ end:
 	return ret;
 }
 
-void usr_mm2s_set_length(void *handle, int length)
+void usr_mm2s_set_length(int length)
 {
-	fpga_dma_set_length(handle, length);
+	fpga_dma_set_length(length);
 }
 
-void usr_mm2s_write_enable(void *handle, bool enable)
+void usr_mm2s_write_enable(bool enable)
 {
-	fpga_dma_write_enable(handle, enable);
+	fpga_dma_write_enable(enable);
 }
 
-void usr_mm2s_clr_buf(void *handle, bool clr)
+void usr_mm2s_clr_buf(bool clr)
 {
-	fpga_dma_ctrl_cfg(handle, clr, clr);
+	fpga_dma_ctrl_cfg(clr, clr);
 }
 
-void usr_mm2s_set_play(void *handle, u8 play)
+void usr_mm2s_set_play(u8 play)
 {
-	fpga_dma_play_enable(handle, play);
+	fpga_dma_play_enable(play);
 }
 
 
@@ -168,16 +168,15 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 	int length = 256 * 1024 * 1024;
 	char *buf = malloc(length);
 	size_t file_len = st.st_size;
-	void *handle = res->fpga_handle;
 
 	/* 1. clear buffer */
-	usr_mm2s_clr_buf(handle, true);
+	usr_mm2s_clr_buf(true);
 	/* 2. set dma length */
-	usr_mm2s_set_length(handle, file_len);
+	usr_mm2s_set_length(file_len);
 	/* 3. set play on repeat mode */
-	usr_mm2s_set_play(handle, 2);
+	usr_mm2s_set_play(2);
 	/* 4. set write enable */
-	usr_mm2s_write_enable(handle, true);
+	usr_mm2s_write_enable(true);
 
 	while (off < file_len) {
 		readlen = read(fd, buf, length);
@@ -194,7 +193,7 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 		}
 	}
 	/* 6. set write disable */
-	usr_mm2s_write_enable(handle, false);
+	usr_mm2s_write_enable(false);
 	printf("send file %s length %x to PL done!\n", filename, length);
 
 	free(buf);
@@ -294,7 +293,6 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	pos = hdr_size + 4;
 	__unused u8 ch0dec = rcv[pos++];
 	__unused u8 ch1dec = rcv[pos++];
-	void *handle = ((usr_thread_res_t *)cfg->private)->fpga_handle;
 
 	if (usr_cmd_invalid_check(snd))
 		return ret;
@@ -302,8 +300,7 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	if ((pos = usr_net_cmd_header_fill(snd, rep_size, NET_CMD_REPLAY_CTRL)) != hdr_size)
 		return ret;
 
-	dbg_printf("handle %p\n", handle);
-	fpga_dac_enable(handle, enable);
+	fpga_dac_enable(enable);
 	bool done = 1;
 	/* TODO: need create 100ms single trigger timer to send cmd to pg */
 	pos += little_endian_byte_set(&snd[pos], done);
