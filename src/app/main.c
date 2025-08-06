@@ -27,7 +27,6 @@ int usr_thread_resource_init(usr_thread_res_t *resource)
 	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
 		resource->sock[i].accept_fd = -1;
 		resource->sock[i].size = 64 * 1024;
-		/* TODO: need check on xilinx linux platform */
 		resource->sock[i].rcv_buf = aligned_alloc(4, resource->sock[i].size);
 		if (!resource->sock[i].rcv_buf)
 			perror("recv aligned alloc failed\n");
