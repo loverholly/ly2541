@@ -9,8 +9,8 @@ STRIP	=	$(CROSS_COMPILE)strip
 RANLIB  = 	$(CROSS_COMPILE)ranlib
 OBJCOPY =	$(CROSS_COMPILE)objcopy
 OBJDUMP =	$(CROSS_COMPILE)objdump
-AWK	= awk
-PERL = perl
+AWK     = awk
+PERL    = perl
 
 export AS CC CXX LD AR NM STRIP RANLIB OBJCOPY OBJDUMP AWK PERL
 
@@ -47,16 +47,16 @@ endif
 # 64 bit file offset support
 CFLAGS += -D_FILE_OFFSET_BITS=64
 
-CFLAGS   += -Wall -DPROG_VERSION=\"$(VERSION)\" -D$(OS_TYPE)
+CFLAGS += -Wall -DPROG_VERSION=\"$(VERSION)\" -D$(OS_TYPE)
 
 # 依赖库
-LDFLAGS += -lpthread -lc -ldl -lm -lrt -T $(PWD)/scripts/link.ld
+LDFLAGS += -lpthread -lc -ldl -lm -lrt -T $(ROOTPATH)/scripts/link.ld
 
 
 DUMFLAGS +=
 
 # 头文件
-INC_PATH +=	-I.
+INC_PATH +=-I$(ROOTPATH)
 
 export CFLAGS LDFLAGS DUMFLAGS INC_PATH
 

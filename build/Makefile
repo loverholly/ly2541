@@ -1,10 +1,16 @@
 VERSION	?= $(shell date +%Y%m%d)-snapshot
 
+CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
+PARDIR := $(realpath $(dir $(CURDIR)))
+ROOTPATH := $(realpath $(dir $(PARDIR)))
+
+# shell command
+
 # 系统类型
 OS_TYPE := LINUX
 
 #头文件
-INC_PATH := -I ./include
+INC_PATH := -I$(ROOTPATH)/include
 
 # 排除的不需要编译的目录及其子目录
 EXCLUDE_DIR := SI* .git* include* siPro* build
@@ -39,12 +45,10 @@ PRO_APP := mainApp
 # BUILD_TYPE ?= DEBUG
 BUILD_TYPE ?= RELEASE
 
-# shell command
-PWD := $(shell pwd)
 
 # 基本目录
-TOP_DIR  := $(PWD)
-SRC_TREE := $(PWD)
+TOP_DIR  := $(ROOTPATH)
+SRC_TREE := $(ROOTPATH)
 
 # 中间文件
 OBJ_NAME := obj
@@ -95,12 +99,9 @@ CXX_SRCS = $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 export  C_SRCS CXX_SRCS EXCLUDE_PATH_NAME BUILD_TYPE TOP_DIR SRC_TREE BIN_PATH \
         INSTALL_PATH OBJ_PATH BUILD_APP BULID_STATIC_LIB CFLAGS
 
-include ./Makefile.template
+include $(ROOTPATH)/build/Makefile.template
 
 CFLAGS += $(INC_PATH)
-
-#add by cq
-#CFLAGS += -std=c99
 
 .SUFFIXES: .cpp .c
 %.o: %.cpp
@@ -130,7 +131,7 @@ version:
 	@echo "void version_show(void);" >> version.h
 	@echo "" >> version.h
 	@echo "#endif /* __VERSION_H__ */" >> version.h
-	@mv version.h include/
+	@mv version.h $(ROOTPATH)/include/
 
 $(BUILD_APP) : $(OBJS)
 	@echo "$(CC) link target $@"
@@ -149,6 +150,6 @@ $(BULID_STATIC_LIB) : $(OBJS)
 
 .PHONY:clean
 clean:
-	rm -rf $(OBJ_PATH)
-	rm -rf $(TOP_DIR)/test/build
-	rm -rf $(BIN_PATH)
+	@rm -rf $(OBJ_PATH)
+	@rm -rf $(TOP_DIR)/test/build
+	@rm -rf $(BIN_PATH)
