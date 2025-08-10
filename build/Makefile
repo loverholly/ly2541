@@ -36,7 +36,7 @@ endif
 export VERSION OS_TYPE CROSS_COMPILE
 
 # 指定生成文件类型，可执行文件、动态库、静态库
-SHARE_LIB :=
+# SHARE_LIB :=
 PRO_APP := mainApp
 # STATIC_LIB
 
@@ -55,7 +55,7 @@ OBJ_NAME := obj
 OBJ_PATH := $(TOP_DIR)/$(OBJ_NAME)/
 
 # 目标文件
-BIN_NAME := bin
+BIN_NAME := .
 BIN_PATH := $(TOP_DIR)/$(BIN_NAME)/
 
 # 排除编译中间文件和目标文件
@@ -134,17 +134,17 @@ version:
 	@mv version.h $(ROOTPATH)/include/
 
 $(BUILD_APP) : $(OBJS)
-	@echo "$(CC) link target $@"
+	@echo "$(CC) link target $(notdir $@)"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(CC) $(CFLAGS) -o $(BUILD_APP) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj)) $(LDFLAGS)
 
 $(BUILD_SHARED_LIB) : $(OBJS)
-	@echo "$(CC) link target $@"
+	@echo "$(CC) link target $(notdir $@)"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(CC) $(CFLAGS) -shared -fPIC -o $(BUILD_SHARED_LIB) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj))
 
 $(BULID_STATIC_LIB) : $(OBJS)
-	@echo "$(CC) linking target $@"
+	@echo "$(CC) link target $(notdir $@)"
 	@test -d $(dir $(BIN_PATH)) || mkdir -p $(dir $(BIN_PATH))
 	@$(AR) rcs $(BULID_STATIC_LIB) $(foreach obj, $(OBJS), $(OBJ_PATH)$(obj))
 
