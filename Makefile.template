@@ -50,7 +50,7 @@ CFLAGS += -D_FILE_OFFSET_BITS=64
 CFLAGS   += -Wall -DPROG_VERSION=\"$(VERSION)\" -D$(OS_TYPE)
 
 # 依赖库
-LDFLAGS += -lpthread -lc -ldl -lm -lrt
+LDFLAGS += -lpthread -lc -ldl -lm -lrt -T $(PWD)/scripts/link.ld
 
 
 DUMFLAGS +=
