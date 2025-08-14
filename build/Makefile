@@ -121,17 +121,15 @@ GIT_VERSION = $(shell git log -n 1 --pretty=format:"%h")
 RELEASE_VERSION = $(shell git describe --tags --abbrev=0)
 
 version:
-	@echo "#ifndef __VERSION_H__" > version.h
-	@echo "#define __VERSION_H__" >> version.h
-	@echo "" >> version.h
-	@date +"#define MAINCTRL_VERSION \"%F,%T\"" >> version.h
-	@echo "#define GIT_VERSION \"$(GIT_VERSION)\"" >> version.h
-	@echo "#define RELEASE_VERSION \"$(RELEASE_VERSION)\"" >> version.h
-	@echo "" >> version.h
-	@echo "void version_show(void);" >> version.h
-	@echo "" >> version.h
-	@echo "#endif /* __VERSION_H__ */" >> version.h
-	@mv version.h $(ROOTPATH)/include/
+	@echo "#ifndef __AUTO_VER_H__" > auto_ver.h
+	@echo "#define __AUTO_VER_H__" >> auto_ver.h
+	@echo "" >> auto_ver.h
+	@date +"#define MAINCTRL_VERSION \"%F,%T\"" >> auto_ver.h
+	@echo "#define GIT_VERSION \"$(GIT_VERSION)\"" >> auto_ver.h
+	@echo "#define RELEASE_VERSION \"$(RELEASE_VERSION)\"" >> auto_ver.h
+	@echo "" >> auto_ver.h
+	@echo "#endif /* __AUTO_VER_H__ */" >> auto_ver.h
+	@mv auto_ver.h include/
 
 $(BUILD_APP) : $(OBJS)
 	@echo "$(CC) link target $(notdir $@)"

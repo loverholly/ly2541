@@ -8,64 +8,64 @@
 #include "fpga_ctrl.h"
 #include "serial.h"
 
-int usr_thread_invalid_check(usr_thread_res_t *resource)
+int usr_thread_invalid_check(usr_thread_res_t *res)
 {
-	if (resource == NULL)
+	if (res == NULL)
 		return -1;
 
 	return 0;
 }
 
-int usr_thread_resource_init(usr_thread_res_t *resource)
+int usr_thread_res_init(usr_thread_res_t *res)
 {
-	if (usr_thread_invalid_check(resource))
+	if (usr_thread_invalid_check(res))
 		return -1;
 
-	resource->fpga_handle = fpga_res_init();
-	resource->server_fd = usr_create_socket(15555);
-	resource->chan0_dma_fd = usr_dma_open("/dev/axidma");
-	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++) {
-		resource->sock[i].accept_fd = -1;
-		resource->sock[i].size = 64 * 1024;
-		resource->sock[i].rcv_buf = aligned_alloc(4, resource->sock[i].size);
-		if (!resource->sock[i].rcv_buf)
+	res->fpga_handle = fpga_res_init();
+	res->server_fd = usr_create_socket(15555);
+	res->chan0_dma_fd = usr_dma_open("/dev/axidma");
+	for (int i = 0; i < ARRAY_SIZE(res->sock); i++) {
+		res->sock[i].accept_fd = -1;
+		res->sock[i].size = 64 * 1024;
+		res->sock[i].rcv_buf = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].rcv_buf)
 			perror("recv aligned alloc failed\n");
 		else
-			dbg_printf("recv buf %p\n", resource->sock[i].rcv_buf);
+			dbg_printf("recv buf %p\n", res->sock[i].rcv_buf);
 
-		resource->sock[i].snd_buf = aligned_alloc(4, resource->sock[i].size);
-		if (!resource->sock[i].snd_buf)
+		res->sock[i].snd_buf = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].snd_buf)
 			perror("send aligned alloc failed\n");
 		else
-			dbg_printf("send buf %p\n", resource->sock[i].snd_buf);
+			dbg_printf("send buf %p\n", res->sock[i].snd_buf);
 
-		resource->sock[i].private = (void *)resource;
-		pthread_mutex_init(&resource->sock[i].mutex, NULL);
+		res->sock[i].private = (void *)res;
+		pthread_mutex_init(&res->sock[i].mutex, NULL);
 	}
-	resource->recv_uart = serial_new();
-	resource->proc_uart = serial_new();
+	res->recv_uart = serial_new();
+	res->proc_uart = serial_new();
 
 	return 0;
 }
 
-int usr_thread_resource_free(usr_thread_res_t *resource)
+int usr_thread_res_free(usr_thread_res_t *res)
 {
-	if (usr_thread_invalid_check(resource))
+	if (usr_thread_invalid_check(res))
 		return -1;
 
-	usr_close_socket(resource->server_fd);
-	usr_dma_close(resource->chan0_dma_fd);
-	fpga_res_close(resource->fpga_handle);
-	serial_free(resource->recv_uart);
-	serial_free(resource->proc_uart);
+	usr_close_socket(res->server_fd);
+	usr_dma_close(res->chan0_dma_fd);
+	fpga_res_close(res->fpga_handle);
+	serial_free(res->recv_uart);
+	serial_free(res->proc_uart);
 
-	for (int i = 0; i < ARRAY_SIZE(resource->sock); i++)  {
-		resource->sock[i].accept_fd = -1;
-		if (resource->sock[i].rcv_buf)
-			free(resource->sock[i].rcv_buf);
-		if (resource->sock[i].snd_buf)
-			free(resource->sock[i].snd_buf);
-		pthread_mutex_destroy(&resource->sock[i].mutex);
+	for (int i = 0; i < ARRAY_SIZE(res->sock); i++)  {
+		res->sock[i].accept_fd = -1;
+		if (res->sock[i].rcv_buf)
+			free(res->sock[i].rcv_buf);
+		if (res->sock[i].snd_buf)
+			free(res->sock[i].snd_buf);
+		pthread_mutex_destroy(&res->sock[i].mutex);
 	}
 
 	return 0;
@@ -162,7 +162,7 @@ end:
 
 void *accept_thread(void *param)
 {
-	usr_thread_res_t *resource = param;
+	usr_thread_res_t *res = param;
 
 	while (true) {
 		int i = 0;
@@ -170,14 +170,14 @@ void *accept_thread(void *param)
 		pthread_t new_recv_connect;
 		pthread_t new_period_connect;
 		struct timeval tv = { .tv_sec = 3 };
-		int res_size = ARRAY_SIZE(resource->sock);
-		int accept_fd = usr_accept_socket(resource->server_fd);
+		int res_size = ARRAY_SIZE(res->sock);
+		int accept_fd = usr_accept_socket(res->server_fd);
 
 		if (accept_fd < 0)
 			continue;
 
 		for (i = 0; i < res_size; i++) {
-			if (resource->sock[i].accept_fd != -1) {
+			if (res->sock[i].accept_fd != -1) {
 				break;
 			}
 		}
@@ -190,7 +190,7 @@ void *accept_thread(void *param)
 
 
 		for (i = 0; i < res_size; i++)
-			resource->sock[i].accept_fd = accept_fd;
+			res->sock[i].accept_fd = accept_fd;
 
 		/* check the socket force close */
 		linger_opt.l_onoff = 1;
@@ -198,8 +198,8 @@ void *accept_thread(void *param)
 		setsockopt(accept_fd, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
 		setsockopt(accept_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 		setsockopt(accept_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &resource->sock[0], NULL);
-		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &resource->sock[1], NULL);
+		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &res->sock[0], NULL);
+		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &res->sock[1], NULL);
 		usr_thread_detach(new_recv_connect);
 		usr_thread_detach(new_period_connect);
 	}
@@ -209,18 +209,18 @@ void *accept_thread(void *param)
 
 int main(int argc, char *argv[])
 {
-	usr_thread_res_t resource;
-	usr_thread_resource_init(&resource);
+	usr_thread_res_t res;
+	usr_thread_res_init(&res);
 	version_show();
 
-	if (resource.server_fd != -1) {
+	if (res.server_fd != -1) {
 		pthread_t server_tid;
-		usr_thread_create(&server_tid, NULL, accept_thread, &resource, NULL);
+		usr_thread_create(&server_tid, NULL, accept_thread, &res, NULL);
 		usr_thread_join(server_tid, NULL);
 	}
 
 	printf("exit from main thread!\n");
-	usr_thread_resource_free(&resource);
+	usr_thread_res_free(&res);
 
 	return 0;
 }
