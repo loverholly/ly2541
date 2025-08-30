@@ -36,8 +36,6 @@ int usr_thread_res_init(usr_thread_res_t *res)
 		res->sock[i].snd_buf = aligned_alloc(4, res->sock[i].size);
 		if (!res->sock[i].snd_buf)
 			perror("send aligned alloc failed\n");
-		else
-			dbg_printf("send buf %p\n", res->sock[i].snd_buf);
 
 		res->sock[i].private = (void *)res;
 		pthread_mutex_init(&res->sock[i].mutex, NULL);
@@ -136,30 +134,6 @@ end:
 	return NULL;
 }
 
-void *period_send_to_socket(void *param)
-{
-	buf_res_t *send = param;
-	int connect_fd = send->accept_fd;
-	goto end;
-
-	while (true) {
-		pthread_mutex_lock(&send->mutex);
-		int size = usr_send_to_socket(connect_fd, send->snd_buf, send->size);
-		if (size < 0) {
-			usr_close_socket(connect_fd);
-			pthread_mutex_unlock(&send->mutex);
-			goto end;
-		}
-
-		pthread_mutex_unlock(&send->mutex);
-	}
-
-end:
-	send->accept_fd = -1;
-	usr_thread_exit(NULL);
-	return NULL;
-}
-
 void *accept_thread(void *param)
 {
 	usr_thread_res_t *res = param;
@@ -168,7 +142,6 @@ void *accept_thread(void *param)
 		int i = 0;
 		struct linger linger_opt;
 		pthread_t new_recv_connect;
-		pthread_t new_period_connect;
 		struct timeval tv = { .tv_sec = 3 };
 		int res_size = ARRAY_SIZE(res->sock);
 		int accept_fd = usr_accept_socket(res->server_fd);
@@ -199,9 +172,7 @@ void *accept_thread(void *param)
 		setsockopt(accept_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 		setsockopt(accept_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &res->sock[0], NULL);
-		usr_thread_create(&new_period_connect, NULL, period_send_to_socket, &res->sock[1], NULL);
 		usr_thread_detach(new_recv_connect);
-		usr_thread_detach(new_period_connect);
 	}
 
 	return NULL;
