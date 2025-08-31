@@ -95,7 +95,8 @@ void *recv_from_socket(void *param)
 			int frame_tail = pack_size - 2;
 			if (frame_len < 0) {
 				dbg_printf("frame len %d error!\n", frame_len);
-				goto wait_next;
+				pthread_mutex_unlock(&recv->mutex);
+				continue;
 			}
 
 			/* recv remain packet due to the frame_len */
@@ -118,13 +119,8 @@ void *recv_from_socket(void *param)
 					}
 					usr_send_to_socket(connect_fd, snd_buf, cfg.snd_size);
 				}
-			} else {
-				dbg_printf("rcv %d expect %d tail %d\n", size, frame_len, frame_tail);
 			}
-		} else {
-			dbg_printf("packet header recv %d error!\n", size);
 		}
-	wait_next:
 		pthread_mutex_unlock(&recv->mutex);
 	}
 
