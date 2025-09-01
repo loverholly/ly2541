@@ -11,6 +11,8 @@ typedef struct {
 	int accept_fd;
 	pthread_mutex_t mutex;
 	char *rcv_buf;
+	char *slip;
+	char *raw;
 	char *snd_buf;
 	int size;
 	void *private;
@@ -22,8 +24,8 @@ typedef struct {
 	int cpu_affinity;
 	void *fpga_handle;
 	buf_res_t sock[1];
-	serial_t *recv_uart;	/* recv cmd from the uart */
-	serial_t *proc_uart;	/* send uart data to device */
+	serial_t *cmd_serial;	/* recv cmd from the uart */
+	serial_t *dev_serial;	/* send uart data to device */
 } usr_thread_res_t;
 
 typedef void *(*thread_callback_t)(void *);

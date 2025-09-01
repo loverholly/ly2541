@@ -31,6 +31,14 @@ int usr_thread_res_init(usr_thread_res_t *res)
 		if (!res->sock[i].rcv_buf)
 			perror("recv aligned alloc failed\n");
 
+		res->sock[i].slip = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].slip)
+			perror("slip aligned alloc failed\n");
+
+		res->sock[i].raw = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].raw)
+			perror("raw aligned alloc failed\n");
+
 		res->sock[i].snd_buf = aligned_alloc(4, res->sock[i].size);
 		if (!res->sock[i].snd_buf)
 			perror("send aligned alloc failed\n");
@@ -38,8 +46,8 @@ int usr_thread_res_init(usr_thread_res_t *res)
 		res->sock[i].private = (void *)res;
 		pthread_mutex_init(&res->sock[i].mutex, NULL);
 	}
-	res->recv_uart = serial_new();
-	res->proc_uart = serial_new();
+	res->cmd_serial = serial_new();
+	res->dev_serial = serial_new();
 
 	return 0;
 }
@@ -52,8 +60,8 @@ int usr_thread_res_free(usr_thread_res_t *res)
 	usr_close_socket(res->server_fd);
 	usr_dma_close(res->chan0_dma_fd);
 	fpga_res_close(res->fpga_handle);
-	serial_free(res->recv_uart);
-	serial_free(res->proc_uart);
+	serial_free(res->cmd_serial);
+	serial_free(res->dev_serial);
 
 	for (int i = 0; i < ARRAY_SIZE(res->sock); i++)  {
 		res->sock[i].accept_fd = -1;
