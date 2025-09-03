@@ -45,6 +45,7 @@ int usr_thread_res_init(usr_thread_res_t *res)
 
 		res->sock[i].private = (void *)res;
 		pthread_mutex_init(&res->sock[i].mutex, NULL);
+		pthread_mutex_init(&res->sock[i].pa_mutex, NULL);
 	}
 	res->cmd_serial = serial_new();
 	res->dev_serial = serial_new();
@@ -70,6 +71,7 @@ int usr_thread_res_free(usr_thread_res_t *res)
 		if (res->sock[i].snd_buf)
 			free(res->sock[i].snd_buf);
 		pthread_mutex_destroy(&res->sock[i].mutex);
+		pthread_mutex_destroy(&res->sock[i].pa_mutex);
 	}
 
 	return 0;

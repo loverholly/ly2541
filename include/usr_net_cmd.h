@@ -42,6 +42,7 @@ int usr_net_get_pack_size(void *header);
 int usr_net_period_feedback_cmd(cfg_param_t *cfg);
 int usr_net_cmd_handler(cfg_param_t *cfg);
 int usr_net_tail_is_valid(char *buf);
+int usr_net_xdma_play(int fd, void *handle);
 
 #ifdef __cplusplus
 }

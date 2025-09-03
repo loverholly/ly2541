@@ -1,4 +1,5 @@
 #include "common.h"
+#include "usr_serial_cmd.h"
 #include "usr_net_cmd.h"
 #include "usr_eth.h"
 #include "usr_file.h"
@@ -153,11 +154,15 @@ void usr_mm2s_set_play(u8 play)
 	fpga_dma_play_enable(play);
 }
 
-
-int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
+int usr_net_xdma_play(int fd, void *handle)
 {
+	usr_thread_res_t *res = handle;
+	buf_res_t *buf_res = &res->sock[0];
+
+	pthread_mutex_lock(&buf_res->pa_mutex);
 	struct stat st;
 	if (fstat(fd, &st) != 0) {
+		pthread_mutex_unlock(&buf_res->pa_mutex);
 		printf("stat get file faild!\n");
 		return -1;
 	}
@@ -194,9 +199,11 @@ int usr_net_xdma_play(int fd, char *filename, usr_thread_res_t *res)
 	}
 	/* 6. set write disable */
 	usr_mm2s_write_enable(false);
-	printf("send file %s length %x to PL done!\n", filename, length);
+	printf("send length %x to PL done!\n", length);
 
 	free(buf);
+	close(fd);
+	pthread_mutex_unlock(&buf_res->pa_mutex);
 	return 0;
 }
 
@@ -229,7 +236,7 @@ int usr_net_chan_config(cfg_param_t *cfg)
 		if (done && chan == 1) {
 			int fd = open_in_dir("/opt/signal", filename);
 			dbg_printf("display %s\n", filename);
-			usr_net_xdma_play(fd, filename, cfg->private);
+			usr_net_xdma_play(fd, cfg->private);
 		} else {
 			done = 0;
 		}

@@ -10,6 +10,9 @@
 typedef struct {
 	int accept_fd;
 	pthread_mutex_t mutex;
+	pthread_mutex_t pa_mutex;
+	int disp_fd;
+	volatile int pa_disp;
 	char *rcv_buf;
 	char *slip;
 	char *raw;
