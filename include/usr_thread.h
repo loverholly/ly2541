@@ -8,7 +8,7 @@
 #include "serial.h"
 
 typedef struct {
-	int accept_fd;
+	volatile int accept_fd;
 	pthread_mutex_t mutex;
 	pthread_mutex_t pa_mutex;
 	int disp_fd;
@@ -27,8 +27,8 @@ typedef struct {
 	int cpu_affinity;
 	void *fpga_handle;
 	buf_res_t sock[1];
-	serial_t *cmd_serial;	/* recv cmd from the uart */
-	serial_t *dev_serial;	/* send uart data to device */
+	serial_t *to_host_serial;	/* recv cmd from the uart */
+	serial_t *to_pa_serial;	/* send uart data to device */
 } usr_thread_res_t;
 
 typedef void *(*thread_callback_t)(void *);

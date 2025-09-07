@@ -94,6 +94,16 @@ u32 fpga_bram_read(void *handle, u32 offset)
 	return fpga->base_addr[fpga_get_offset(offset)];
 }
 
+u16 fpga_bram_read16(void *handle, u32 offset)
+{
+	struct fpga_bram_handle *fpga = handle;
+	if (fpga_res_check(handle, offset) == -1)
+		return ~0;
+
+	return *(volatile u16 *)((void *)fpga->base_addr + offset);
+}
+
+
 void fpga_res_close(void *handle)
 {
 	if (handle == NULL) {
@@ -138,9 +148,9 @@ void fpga_dma_ctrl_cfg(u8 clr, u8 reset)
 	}
 }
 
-u32 fpga_get_temp(void)
+short fpga_get_temp(void)
 {
-	return fpga_bram_read(fpga_get_handle(), BRAM_TEMP);
+	return fpga_bram_read16(fpga_get_handle(), BRAM_TEMP);
 }
 
 u32 fpga_get_vccint(void)
@@ -161,4 +171,9 @@ u32 fpga_get_version(void)
 void fpga_dac_enable(bool enable)
 {
 	fpga_bram_write(fpga_get_handle(), BRAM_DAC_EN, !!enable);
+}
+
+u16 fpga_get_status(void)
+{
+	return fpga_bram_read16(fpga_get_handle(), BRAM_STATUS);
 }

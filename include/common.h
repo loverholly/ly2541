@@ -29,10 +29,13 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 #include <sys/statvfs.h>
+#include <sys/ioctl.h>
 
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include <linux/ioctl.h>
+#include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 #include <semaphore.h>
 #include <pthread.h>
 #include <assert.h>

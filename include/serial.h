@@ -8,6 +8,8 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <semaphore.h>
+#include <pthread.h>
 
 enum serial_error_code {
 	SERIAL_ERROR_ARG = -1,	/* Invalid arguments */
@@ -32,6 +34,7 @@ struct serial_handle {
 		int c_errno;
 		char errmsg[96];
 	} error;
+	pthread_mutex_t mutex;
 };
 
 

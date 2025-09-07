@@ -218,28 +218,33 @@ int usr_net_chan_config(cfg_param_t *cfg)
 	int hdr_size = usr_net_cmd_hdr_size();
 	int hdr_pos = hdr_size;
 	__unused u8 chan = rcv_buf[hdr_pos++];
-	__unused u8 enable = rcv_buf[hdr_pos++];
+	__unused u8 enable = (rcv_buf[hdr_pos++] & 0x1) ? 1 : 0;
 	int pack_size = usr_net_get_pack_size(rcv_buf);
 	int name_len = pack_size - TAIL_SIZE - hdr_size;
 	char filename[NAME_LEN] = {0};
 
 	dbg_printf("chan %d enable %d\n", chan, enable);
-	if (name_len < NAME_MAX) {
-		memcpy(filename, &rcv_buf[hdr_pos], name_len);
-		filename[name_len] = 0;
-		dbg_printf("filename %s\n", filename);
+	if (enable) {
+		if (name_len < NAME_MAX) {
+			memcpy(filename, &rcv_buf[hdr_pos], name_len);
+			filename[name_len] = 0;
+			dbg_printf("filename %s\n", filename);
 
-		/* check the file exist */
-		if (find_file_in_path("/opt/signal", filename, NULL) == 0)
-			done = 1;
+			/* check the file exist */
+			if (find_file_in_path("/opt/signal", filename, NULL) == 0)
+				done = 1;
 
-		if (done && chan == 1) {
-			int fd = open_in_dir("/opt/signal", filename);
-			dbg_printf("display %s\n", filename);
-			usr_net_xdma_play(fd, cfg->private);
-		} else {
-			done = 0;
+			if (done && chan == 1) {
+				int fd = open_in_dir("/opt/signal", filename);
+				dbg_printf("display %s\n", filename);
+				usr_net_xdma_play(fd, cfg->private);
+			} else {
+				done = 0;
+			}
 		}
+	} else {
+		usr_mm2s_set_play(0);
+		usr_mm2s_write_enable(false);
 	}
 
 	if (usr_cmd_invalid_check(buf))
@@ -247,7 +252,6 @@ int usr_net_chan_config(cfg_param_t *cfg)
 
 	if ((pos = usr_net_cmd_header_fill(buf, rep_size, NET_CMD_CHAN_CONFIG)) != hdr_size)
 		return ret;
-
 
 	pos += little_endian_byte_set(&buf[pos], done);
 	ret = usr_net_cmd_tail_fill(&buf[pos]);
@@ -352,4 +356,22 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 
 	printf("net cmd 0x%x invalid\n", hdr->frame_cmd);
 	return -1;
+}
+
+void usr_dma_error_set(void *handle)
+{
+	usr_thread_res_t *res = handle;
+	buf_res_t *buf_res = &res->sock[0];
+	/* 1. clear buffer */
+	usr_mm2s_clr_buf(true);
+	/* 2. set dma length */
+	usr_mm2s_set_length(buf_res->size);
+	/* 3. set play on repeat mode */
+	usr_mm2s_set_play(2);
+	/* 4. set write enable */
+	usr_mm2s_write_enable(true);
+	usr_dma_write(res->chan0_dma_fd, buf_res->snd_buf, buf_res->size);
+
+	usr_mm2s_set_play(0);
+	usr_mm2s_write_enable(false);
 }

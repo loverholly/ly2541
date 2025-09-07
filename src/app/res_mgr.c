@@ -47,8 +47,10 @@ int usr_thread_res_init(usr_thread_res_t *res)
 		pthread_mutex_init(&res->sock[i].mutex, NULL);
 		pthread_mutex_init(&res->sock[i].pa_mutex, NULL);
 	}
-	res->cmd_serial = serial_new();
-	res->dev_serial = serial_new();
+	res->to_host_serial = serial_new();
+	serial_open(res->to_host_serial, "/dev/ttyPS1", 115200);
+	res->to_pa_serial = serial_new();
+	serial_open(res->to_pa_serial, "/dev/ttyUL0", 115200);
 
 	return 0;
 }
@@ -61,8 +63,8 @@ int usr_thread_res_free(usr_thread_res_t *res)
 	usr_close_socket(res->server_fd);
 	usr_dma_close(res->chan0_dma_fd);
 	fpga_res_close(res->fpga_handle);
-	serial_free(res->cmd_serial);
-	serial_free(res->dev_serial);
+	serial_free(res->to_host_serial);
+	serial_free(res->to_pa_serial);
 
 	for (int i = 0; i < ARRAY_SIZE(res->sock); i++)  {
 		res->sock[i].accept_fd = -1;

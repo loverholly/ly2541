@@ -107,42 +107,40 @@ int usr_build_serial_frame(u8 dir, u8 cmd, u8 *payload, int payload_len, u8 *out
 	return p - out;
 }
 
-int usr_send_serial_frame(void *handle, u8 dir, u8 cmd, u8 *payload, int payload_len)
+void usr_send_build_frame(u8 *snd_buf, u8 *payload, int payload_len)
 {
-	usr_thread_res_t *res = handle;
-	u8 *raw  = (u8 *)res->sock[0].raw;
-	u8 *slip = (u8 *)res->sock[0].slip;
-	int raw_len = usr_build_serial_frame(dir, cmd, payload, payload_len, raw, sizeof(raw));
-	if (raw_len < 0)
-		return -1;
+	assert(payload_len == 19);
+	snd_buf[0]  = 0x7B;
+	snd_buf[1]  = 0x7B;
+	snd_buf[22] = 0x7D;
+	snd_buf[23] = 0x7D;
 
-	int slip_len = usr_ser_slip_encode(raw, raw_len, slip, sizeof(slip));
-	if (slip_len < 0)
-		return -1;
+	/* calc snd buf crc */
+	for (int i = 0; i < 19; i++)
+		snd_buf[2 + i] = payload[i];
 
-	return serial_write(res->cmd_serial, slip, slip_len) == slip_len ? 0 : -1;
+	snd_buf[21] = crc8(&snd_buf[2], 19);
+}
+
+int usr_send_serial_frame(void *handle, u8 *snd_buf, u16 len)
+{
+	return serial_write(handle, (uint8_t *)snd_buf, 24);
 }
 
 int usr_recv_serial_frame(void *handle, u8 *buf, int buf_max)
 {
-	usr_thread_res_t *res = handle;
-	buf_res_t *buf_res = &res->sock[0];
-	u8 *tmp = (u8 *)buf_res->raw;
-	u32 size = buf_res->size;
-
-	int n = serial_read(res->cmd_serial, tmp, size, 10000);
+	int n = serial_read(handle, buf, 24, 5);
 	if (n <= 0)
 		return -1;
 
-	int len = usr_ser_slip_decode(tmp, n, buf, buf_max);
-	if (len < 5)
+	if (!(buf[0] == 0x7B && buf[1] == 0x7B && buf[22] == 0x7D && buf[23] == 0x7D))
 		return -1;
 
-	/* CRC 校验 */
-	u16 recv_crc = buf[len - 2] | (buf[len - 1] << 8);
-	u16 calc_crc = crc16((char *)buf, len - 2);
+	/* check the crc */
+	u8 calc_crc = crc8(&buf[2], 19);
+	u8 recv_crc  = buf[21];
 	if (recv_crc != calc_crc)
 		return -2;
 
-	return len - 2; /* 去掉 CRC */
+	return 24;
 }

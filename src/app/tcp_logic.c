@@ -8,6 +8,7 @@
 #include "fpga_ctrl.h"
 #include "serial.h"
 #include "res_mgr.h"
+#include "period_feedback.h"
 
 void *recv_from_socket(void *param)
 {
@@ -16,6 +17,11 @@ void *recv_from_socket(void *param)
 
 	while (true) {
 		pthread_mutex_lock(&recv->mutex);
+		if (recv->accept_fd == -1) {
+			pthread_mutex_unlock(&recv->mutex);
+			goto end;
+		}
+
 		/* check the first net cmd header is match 6byte */
 		char *rcv_buf = recv->rcv_buf;
 		char *snd_buf = recv->snd_buf;
@@ -23,6 +29,7 @@ void *recv_from_socket(void *param)
 		int rcv_len = min(recv->size, hdr_size);
 		int size = usr_recv_from_socket(connect_fd, rcv_buf, rcv_len);
 		if (size <= 0) {
+			recv->accept_fd = -1;
 			usr_close_socket(connect_fd);
 			pthread_mutex_unlock(&recv->mutex);
 			goto end;
@@ -57,7 +64,14 @@ void *recv_from_socket(void *param)
 					for (int i = 0; i < cfg.snd_size; i++) {
 						dbg_printf("snd buf[%d] %02x\n", i, (u8)snd_buf[i]);
 					}
-					usr_send_to_socket(connect_fd, snd_buf, cfg.snd_size);
+
+					int ret = usr_send_to_socket(connect_fd, snd_buf, cfg.snd_size);
+					if (ret < 0) {
+						recv->accept_fd = -1;
+						usr_close_socket(connect_fd);
+						pthread_mutex_unlock(&recv->mutex);
+						goto end;
+					}
 				}
 			}
 		}
@@ -65,7 +79,39 @@ void *recv_from_socket(void *param)
 	}
 
 end:
-	recv->accept_fd = -1;
+	usr_thread_exit(NULL);
+	return NULL;
+}
+
+void *period_snd_socket(void *param)
+{
+	buf_res_t *snd = param;
+	while(true) {
+		char *snd_buf = snd->snd_buf;
+		char *input = snd->raw;
+		pthread_mutex_lock(&snd->mutex);
+		if (snd->accept_fd == -1)
+			goto end;
+
+		period_feedback_buf_set(input, 19);
+		snd_buf[0] = 0xA5;
+		snd_buf[1] = 0xA5;
+		for (int i = 0; i < 19; i++)
+			snd_buf[2 + i] = input[i];
+		snd_buf[22] = 0x7E;
+		snd_buf[23] = 0x7E;
+		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 19);
+		if (ret < 0)
+			goto end;
+
+		pthread_mutex_unlock(&snd->mutex);
+		usleep(500000);
+	}
+
+end:
+	usr_close_socket(snd->accept_fd);
+	snd->accept_fd = -1;
+	pthread_mutex_unlock(&snd->mutex);
 	usr_thread_exit(NULL);
 	return NULL;
 }
@@ -78,6 +124,7 @@ void *tcp_thread(void *param)
 		int i = 0;
 		struct linger linger_opt;
 		pthread_t new_recv_connect;
+		pthread_t period_snd_connect;
 		struct timeval tv = { .tv_sec = 3 };
 		int res_size = ARRAY_SIZE(res->sock);
 		int accept_fd = usr_accept_socket(res->server_fd);
@@ -108,7 +155,9 @@ void *tcp_thread(void *param)
 		setsockopt(accept_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 		setsockopt(accept_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 		usr_thread_create(&new_recv_connect, NULL, recv_from_socket, &res->sock[0], NULL);
+		usr_thread_create(&period_snd_connect, NULL, period_snd_socket, &res->sock[0], NULL);
 		usr_thread_detach(new_recv_connect);
+		usr_thread_detach(period_snd_connect);
 	}
 
 	return NULL;

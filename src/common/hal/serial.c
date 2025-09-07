@@ -50,12 +50,14 @@ serial_t *serial_new(void)
 		return NULL;
 
 	serial->fd = -1;
+	pthread_mutex_init(&serial->mutex, NULL);
 
 	return serial;
 }
 
 void serial_free(serial_t * serial)
 {
+	pthread_mutex_destroy(&serial->mutex);
 	free(serial);
 }
 
@@ -354,19 +356,26 @@ int serial_write(serial_t * serial, const uint8_t * buf, size_t len)
 {
 	ssize_t ret;
 
-	if ((ret = write(serial->fd, buf, len)) < 0)
+	pthread_mutex_lock(&serial->mutex);
+	if ((ret = write(serial->fd, buf, len)) < 0) {
+		pthread_mutex_unlock(&serial->mutex);
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
 		                     "Writing serial port");
+	}
+	pthread_mutex_unlock(&serial->mutex);
 
 	return ret;
 }
 
 int serial_flush(serial_t * serial)
 {
-
-	if (tcdrain(serial->fd) < 0)
+	pthread_mutex_lock(&serial->mutex);
+	if (tcdrain(serial->fd) < 0) {
+		pthread_mutex_unlock(&serial->mutex);
 		return _serial_error(serial, SERIAL_ERROR_IO, errno,
 		                     "Flushing serial port");
+	}
+	pthread_mutex_unlock(&serial->mutex);
 
 	return 0;
 }

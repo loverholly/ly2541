@@ -27,7 +27,7 @@ void fpga_dma_play_enable(u8 play);
 
 void fpga_dma_ctrl_cfg(u8 clr, u8 reset);
 
-u32 fpga_get_temp(void);
+short fpga_get_temp(void);
 
 u32 fpga_get_vccint(void);
 
@@ -36,6 +36,8 @@ u32 fpga_get_vccaux(void);
 u32 fpga_get_version(void);
 
 void fpga_dac_enable(bool enable);
+
+u16 fpga_get_status(void);
 
 #ifdef __cplusplus
 }
