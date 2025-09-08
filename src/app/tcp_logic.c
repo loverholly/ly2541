@@ -96,11 +96,11 @@ void *period_snd_socket(void *param)
 		period_feedback_buf_set(input, 19);
 		snd_buf[0] = 0xA5;
 		snd_buf[1] = 0xA5;
-		for (int i = 0; i < 19; i++)
+		for (int i = 0; i < 18; i++)
 			snd_buf[2 + i] = input[i];
 		snd_buf[22] = 0x7E;
 		snd_buf[23] = 0x7E;
-		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 19);
+		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 22);
 		if (ret < 0)
 			goto end;
 
