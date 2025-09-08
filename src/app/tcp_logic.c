@@ -96,21 +96,26 @@ void *period_snd_socket(void *param)
 		period_feedback_buf_set(input, 19);
 		snd_buf[0] = 0xA5;
 		snd_buf[1] = 0xA5;
-		for (int i = 0; i < 18; i++)
-			snd_buf[2 + i] = input[i];
+		snd_buf[2] = 21;
+		snd_buf[3] = 0;
+		snd_buf[4] = 0xFF;
+		snd_buf[5] = 0xAF;
+		for (int i = 0; i < 14; i++)
+			snd_buf[6 + i] = input[i];
 		snd_buf[22] = 0x7E;
 		snd_buf[23] = 0x7E;
-		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 22);
-		if (ret < 0)
+		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 24);
+		if (ret < 0) {
+			snd->accept_fd = -1;
+			usr_close_socket(snd->accept_fd);
 			goto end;
+		}
 
 		pthread_mutex_unlock(&snd->mutex);
-		usleep(500000);
+		usleep(490000);
 	}
 
 end:
-	usr_close_socket(snd->accept_fd);
-	snd->accept_fd = -1;
 	pthread_mutex_unlock(&snd->mutex);
 	usr_thread_exit(NULL);
 	return NULL;

@@ -150,7 +150,7 @@ void fpga_dma_ctrl_cfg(u8 clr, u8 reset)
 
 short fpga_get_temp(void)
 {
-	return fpga_bram_read16(fpga_get_handle(), BRAM_TEMP);
+	return (fpga_bram_read16(fpga_get_handle(), BRAM_TEMP) & 0xfff);
 }
 
 u32 fpga_get_vccint(void)
