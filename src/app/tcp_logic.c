@@ -18,6 +18,7 @@ void *recv_from_socket(void *param)
 	while (true) {
 		pthread_mutex_lock(&recv->mutex);
 		if (recv->accept_fd == -1) {
+			dbg_printf("close the recv socket %d!\n", connect_fd);
 			pthread_mutex_unlock(&recv->mutex);
 			goto end;
 		}
@@ -28,7 +29,15 @@ void *recv_from_socket(void *param)
 		int hdr_size = usr_net_cmd_hdr_size();
 		int rcv_len = min(recv->size, hdr_size);
 		int size = usr_recv_from_socket(connect_fd, rcv_buf, rcv_len);
-		if (size <= 0) {
+		if (size < 0) {
+			if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+				pthread_mutex_unlock(&recv->mutex);
+				usleep(5000);
+				dbg_printf("errno %d\n", errno);
+				continue;
+			}
+
+			dbg_printf("close the recv socket %d size %d!\n", connect_fd, size);
 			recv->accept_fd = -1;
 			usr_close_socket(connect_fd);
 			pthread_mutex_unlock(&recv->mutex);
@@ -68,6 +77,7 @@ void *recv_from_socket(void *param)
 					int ret = usr_send_to_socket(connect_fd, snd_buf, cfg.snd_size);
 					if (ret < 0) {
 						recv->accept_fd = -1;
+						dbg_printf("close the recv socket %d!\n", connect_fd);
 						usr_close_socket(connect_fd);
 						pthread_mutex_unlock(&recv->mutex);
 						goto end;
@@ -86,12 +96,15 @@ end:
 void *period_snd_socket(void *param)
 {
 	buf_res_t *snd = param;
+	dbg_printf("new the snd socket %d!\n", snd->accept_fd);
 	while(true) {
 		char *snd_buf = snd->snd_buf;
 		char *input = snd->raw;
 		pthread_mutex_lock(&snd->mutex);
-		if (snd->accept_fd == -1)
+		if (snd->accept_fd == -1) {
+			dbg_printf("close the snd socket!\n");
 			goto end;
+		}
 
 		period_feedback_buf_set(input, 19);
 		snd_buf[0] = 0xA5;
@@ -106,10 +119,12 @@ void *period_snd_socket(void *param)
 		snd_buf[23] = 0x7E;
 		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 24);
 		if (ret < 0) {
-			snd->accept_fd = -1;
 			usr_close_socket(snd->accept_fd);
+			dbg_printf("close the snd socket!\n");
+			snd->accept_fd = -1;
 			goto end;
 		}
+		dbg_printf("snd buf to host!\n");
 
 		pthread_mutex_unlock(&snd->mutex);
 		usleep(490000);
@@ -145,6 +160,7 @@ void *tcp_thread(void *param)
 
 		/* keep just one connect instance */
 		if (i != res_size) {
+			dbg_printf("close the new socket\n");
 			usr_close_socket(accept_fd);
 			continue;
 		}
@@ -152,6 +168,7 @@ void *tcp_thread(void *param)
 
 		for (i = 0; i < res_size; i++)
 			res->sock[i].accept_fd = accept_fd;
+		dbg_printf("connect new socket %d\n", res->sock[0].accept_fd);
 
 		/* check the socket force close */
 		linger_opt.l_onoff = 1;
