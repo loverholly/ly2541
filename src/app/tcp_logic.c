@@ -86,6 +86,7 @@ void *recv_from_socket(void *param)
 			}
 		}
 		pthread_mutex_unlock(&recv->mutex);
+		usleep(5000);
 	}
 
 end:
@@ -113,8 +114,28 @@ void *period_snd_socket(void *param)
 		snd_buf[3] = 0;
 		snd_buf[4] = 0xFF;
 		snd_buf[5] = 0xAF;
-		for (int i = 0; i < 14; i++)
-			snd_buf[6 + i] = input[i];
+
+		snd_buf[6] = input[0];
+
+		snd_buf[7] = input[2];
+		snd_buf[8] = input[1];
+		snd_buf[9] = input[4];
+		snd_buf[10] = input[3];
+
+		snd_buf[11] = input[5];
+
+		snd_buf[12] = input[7];
+		snd_buf[13] = input[6];
+		snd_buf[14] = input[9];
+		snd_buf[15] = input[8];
+
+		snd_buf[16] = input[10];
+		snd_buf[17] = input[11];
+		snd_buf[18] = input[12];
+		snd_buf[19] = input[13];
+		snd_buf[20] = 0;
+		snd_buf[21] = 0;
+
 		snd_buf[22] = 0x7E;
 		snd_buf[23] = 0x7E;
 		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 24);
@@ -123,6 +144,9 @@ void *period_snd_socket(void *param)
 			dbg_printf("close the snd socket!\n");
 			snd->accept_fd = -1;
 			goto end;
+		}
+		for (int i = 0; i < 24; i++) {
+			dbg_printf("buf[%d] %02x\n", i, (u8)snd_buf[i]);
 		}
 		dbg_printf("snd buf to host!\n");
 

@@ -10,7 +10,7 @@ void period_feedback_buf_set(char *input, int len)
 	memset(input, 0, len);
 	/* 数字模块温度 */
 	input[0] = (u8)((((fpga_get_temp() & 0xfff) * 503.975f) / 4096) - 273.15f);
-	dbg_printf("fpga temp %04x %f\n", (u16)(fpga_get_temp() & 0xfff), ((((fpga_get_temp() & 0xfff) * 503.975f) / 4096) - 273.15f));
+	/* dbg_printf("fpga temp %04x %f\n", (u16)(fpga_get_temp() & 0xfff), ((((fpga_get_temp() & 0xfff) * 503.975f) / 4096) - 273.15f)); */
 	/* 数字模块电压,default 28V=28000mV/10mV */
 	u16 adc_vol = ((usr_i2c_read_vol() * 1.25f) / 10);
 	input[1] = adc_vol >> 8;
