@@ -145,10 +145,6 @@ void *period_snd_socket(void *param)
 			snd->accept_fd = -1;
 			goto end;
 		}
-		for (int i = 0; i < 24; i++) {
-			dbg_printf("buf[%d] %02x\n", i, (u8)snd_buf[i]);
-		}
-		dbg_printf("snd buf to host!\n");
 
 		pthread_mutex_unlock(&snd->mutex);
 		usleep(490000);
