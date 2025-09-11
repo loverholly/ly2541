@@ -293,6 +293,9 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	usr_thread_res_t *res = cfg->private;
 	u16 pos = hdr_size;
 	u8 enable = rcv[pos] & 0x1;
+	u8 pa_buf[24] = {0};
+	u8 raw[24] = {0};
+	u16 pack_size = ((net_cmd_hdr_t *)rcv)->frame_length;
 	pos = hdr_size + 4;
 	__unused u8 ch0dec = rcv[pos++];
 	__unused u8 ch1dec = rcv[pos++];
@@ -305,7 +308,12 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 
 	usr_mm2s_set_play(enable ? 2 : 0);
 	usleep(100000);
-	usr_send_serial_frame(res->to_pa_serial, (u8 *)rcv, hdr_size + 4);
+	for (int i = 0; i < pack_size - 8; i++) {
+		raw[i] = rcv[hdr_size + i];
+		dbg_printf("raw[%d] %02x rcv[%d] %02x", i, raw[i], hdr_size + i, rcv[hdr_size + i]);
+	}
+	usr_send_build_frame(pa_buf, raw, pack_size - 8);
+	usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
 	pos += little_endian_byte_set(&snd[pos], 1);
 	ret = usr_net_cmd_tail_fill(&snd[pos]);
 	usr_cmd_set_snd_size(&cfg->snd_size, rep_size);
@@ -346,7 +354,7 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 		}
 	}
 
-	printf("net cmd 0x%x invalid\n", hdr->frame_cmd);
+	printf("net cmd 0x%x skipped\n", hdr->frame_cmd);
 	return -1;
 }
 
