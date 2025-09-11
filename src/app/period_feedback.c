@@ -48,7 +48,7 @@ void period_feedback_buf_set(char *input, int len)
 	cur_status &= pa_cur >= min_cur && pa_cur <= max_cur;
 	u8 pa_dbm_sts = (input[10] >= 20 * 5) && (input[11] >= 20 * 5);
 	input[12] = dac_status | temp_status << 3 | (!!vcc_status) << 4
-	            | (!!cur_status) << 5 | pa_dbm_sts << 6 | 1 << 7;
+	            | (!!cur_status) << 5 | pa_dbm_sts << 6 | usr_get_pa_sts() << 7;
 	input[13] = ((fpga_get_status() & 0x7) == 0x7) ? 1 : 0;
 
 	input[14] = 0;

@@ -35,6 +35,12 @@ static char pa_pre_temp;
 static u16 pa_pre_vol;
 static u16 pa_pre_cur;
 static char pa_pre_ps[2];
+static char pa_sts;
+
+char usr_get_pa_sts(void)
+{
+	return pa_sts;
+}
 
 char usr_get_pa_temp(void)
 {
@@ -175,6 +181,7 @@ void *serial_pa_thread(void *param)
 			pa_pre_cur = rcv_buf[10] << 8 | rcv_buf[11];
 			pa_pre_ps[0] = rcv_buf[12];
 			pa_pre_ps[1] = rcv_buf[13];
+			pa_sts = rcv_buf[14] & 0x1;
 		}
 
 		usleep(10000);

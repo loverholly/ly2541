@@ -1,6 +1,8 @@
 #ifndef __SERIAL_LOGIC_H__
 #define __SERIAL_LOGIC_H__
 
+char usr_get_pa_sts(void);
+
 char usr_get_pa_temp(void);
 
 u16 usr_get_pa_vol(void);
