@@ -116,10 +116,10 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	if ((pos = usr_net_cmd_header_fill(buf, rep_size, NET_CMD_DEV_STS)) != hdr_size)
 		goto end;
 
-	float disk_free = get_fdisk_free()/1000/1000/1000;
-	pos += little_endian_dword_set(&buf[pos], (int)disk_free);
-	float disk_size = get_fdisk_size()/1000/1000/1000;
-	pos += little_endian_dword_set(&buf[pos], (int)disk_size);
+	float disk_free = ((float)get_fdisk_free()) / 1024 / 1024 / 1024;
+	pos += little_endian_dword_set(&buf[pos], disk_free);
+	float disk_size = ((float)get_fdisk_size()) / 1024 / 1024 / 1024;
+	pos += little_endian_dword_set(&buf[pos], disk_size);
 	u8 fpga_status = fpga_get_version() != ~0 ? 1 : 0;
 	pos += little_endian_byte_set(&buf[pos], fpga_status);
 	pos += little_endian_byte_set(&buf[pos], chan_num);
