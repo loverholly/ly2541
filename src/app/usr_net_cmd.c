@@ -179,8 +179,6 @@ int usr_net_xdma_play(int fd, void *handle)
 	usr_mm2s_clr_buf(true);
 	/* 2. set dma length */
 	usr_mm2s_set_length(file_len);
-	/* 3. set play on repeat mode */
-	usr_mm2s_set_play(2);
 	/* 4. set write enable */
 	usr_mm2s_write_enable(true);
 
@@ -198,6 +196,7 @@ int usr_net_xdma_play(int fd, void *handle)
 			}
 		}
 	}
+
 	/* 6. set write disable */
 	usr_mm2s_write_enable(false);
 	printf("send length %x to PL done!\n", length);
@@ -225,27 +224,18 @@ int usr_net_chan_config(cfg_param_t *cfg)
 	char filename[NAME_LEN] = {0};
 
 	dbg_printf("chan %d enable %d\n", chan, enable);
-	if (enable) {
-		if (name_len < NAME_MAX) {
-			memcpy(filename, &rcv_buf[hdr_pos], name_len);
-			filename[name_len] = 0;
-			dbg_printf("filename %s\n", filename);
+	if (name_len < NAME_MAX) {
+		memcpy(filename, &rcv_buf[hdr_pos], name_len);
+		filename[name_len] = 0;
+		dbg_printf("filename %s\n", filename);
 
-			/* check the file exist */
-			if (find_file_in_path("/opt/signal", filename, NULL) == 0)
-				done = 1;
+		/* check the file exist */
+		if (find_file_in_path("/opt/signal", filename, NULL) == 0)
+			done = 1;
 
-			if (done && chan == 1) {
-				int fd = open_in_dir("/opt/signal", filename);
-				dbg_printf("display %s\n", filename);
-				usr_net_xdma_play(fd, cfg->private);
-			} else {
-				done = 0;
-			}
-		}
-	} else {
-		usr_mm2s_set_play(0);
-		usr_mm2s_write_enable(false);
+		int fd = open_in_dir("/opt/signal", filename);
+		dbg_printf("display %s\n", filename);
+		usr_net_xdma_play(fd, cfg->private);
 	}
 
 	if (usr_cmd_invalid_check(buf))
@@ -313,7 +303,7 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	if ((pos = usr_net_cmd_header_fill(snd, rep_size, NET_CMD_REPLAY_CTRL)) != hdr_size)
 		return ret;
 
-	fpga_dac_enable(enable);
+	usr_mm2s_set_play(enable ? 2 : 0);
 	usleep(100000);
 	usr_send_serial_frame(res->to_pa_serial, (u8 *)rcv, hdr_size + 4);
 	pos += little_endian_byte_set(&snd[pos], 1);

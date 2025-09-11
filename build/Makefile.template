@@ -45,7 +45,7 @@ endif
 
 
 # 64 bit file offset support
-CFLAGS += -D_FILE_OFFSET_BITS=64
+CFLAGS += -D_FILE_OFFSET_BITS=64 -fno-strict-aliasing
 
 CFLAGS += -Wall -DPROG_VERSION=\"$(VERSION)\" -D$(OS_TYPE)
 

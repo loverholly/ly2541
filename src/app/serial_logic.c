@@ -99,7 +99,6 @@ void usr_ser_param_set(void *handle)
 	u8 *buf = (u8 *)buf_res->rcv_buf;
 	u8 filenum = buf[3];
 	u8 done = 0;
-	u8 chan = 1;
 	__unused u8 ch0_pa = buf[6];
 	__unused u8 ch1_pa = buf[7];
 	u8 enable = buf[2] & 0x1;
@@ -112,7 +111,7 @@ void usr_ser_param_set(void *handle)
 	if (find_file_in_path("/opt/signal", filename, NULL) == 0)
 		done = 1;
 
-	if (enable && done && chan == 1) {
+	if (enable && done) {
 		int fd = open_in_dir("/opt/signal", filename);
 		dbg_printf("display %s\n", filename);
 
@@ -121,6 +120,9 @@ void usr_ser_param_set(void *handle)
 		usr_mm2s_set_play(0);
 		usr_mm2s_write_enable(false);
 	}
+
+	usleep(100000);
+	usr_send_serial_frame(res->to_pa_serial, buf, 24);
 }
 
 void usr_ser_logic(void *handle)
