@@ -6,6 +6,7 @@
 #include "usr_thread.h"
 #include "fpga_ctrl.h"
 #include "usr_dma.h"
+#include "usr_serial_cmd.h"
 
 #define TAIL_SIZE 2
 #define NAME_LEN (NAME_MAX + 1)
@@ -299,6 +300,7 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	char *snd = cfg->snd_buf;
 	char *rcv = cfg->rcv_buf;
 	u8 hdr_size = usr_net_cmd_hdr_size();
+	usr_thread_res_t *res = cfg->private;
 	u16 pos = hdr_size;
 	u8 enable = rcv[pos] & 0x1;
 	pos = hdr_size + 4;
@@ -312,9 +314,9 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 		return ret;
 
 	fpga_dac_enable(enable);
-	bool done = 1;
-	/* TODO: need create 100ms single trigger timer to send cmd to pg */
-	pos += little_endian_byte_set(&snd[pos], done);
+	usleep(100000);
+	usr_send_serial_frame(res->to_pa_serial, (u8 *)rcv, hdr_size + 4);
+	pos += little_endian_byte_set(&snd[pos], 1);
 	ret = usr_net_cmd_tail_fill(&snd[pos]);
 	usr_cmd_set_snd_size(&cfg->snd_size, rep_size);
 
