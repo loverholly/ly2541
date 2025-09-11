@@ -117,9 +117,9 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 		goto end;
 
 	float disk_free = ((float)get_fdisk_free()) / 1024 / 1024 / 1024;
-	pos += little_endian_dword_set(&buf[pos], disk_free);
+	pos += little_endian_dword_set(&buf[pos], *(u32 *)&disk_free);
 	float disk_size = ((float)get_fdisk_size()) / 1024 / 1024 / 1024;
-	pos += little_endian_dword_set(&buf[pos], disk_size);
+	pos += little_endian_dword_set(&buf[pos], *(u32 *)&disk_size);
 	u8 fpga_status = fpga_get_version() != ~0 ? 1 : 0;
 	pos += little_endian_byte_set(&buf[pos], fpga_status);
 	pos += little_endian_byte_set(&buf[pos], chan_num);
