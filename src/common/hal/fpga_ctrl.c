@@ -177,3 +177,8 @@ u16 fpga_get_status(void)
 {
 	return fpga_bram_read16(fpga_get_handle(), BRAM_STATUS);
 }
+
+u32 fpga_get_play_enable(void)
+{
+	return (u32)fpga_bram_read16(fpga_get_handle(), BRAM_PLAY_ENABLE);
+}

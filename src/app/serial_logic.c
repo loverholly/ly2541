@@ -117,12 +117,14 @@ void usr_ser_param_set(void *handle)
 		done = 1;
 
 	if (enable && done) {
-		int fd = open_in_dir("/opt/signal", filename);
-		usr_play_file_record(filename);
-		dbg_printf("display %s\n", filename);
+		if (fpga_get_play_enable() != 2) {
+			int fd = open_in_dir("/opt/signal", filename);
+			usr_play_file_record(filename);
+			dbg_printf("display %s\n", filename);
 
-		usr_mm2s_set_play(2);
-		usr_net_xdma_play(fd, res);
+			usr_mm2s_set_play(2);
+			usr_net_xdma_play(fd, res);
+		}
 
 		usleep(100000);
 		usr_send_serial_frame(res->to_pa_serial, buf, 24);

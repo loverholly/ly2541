@@ -306,14 +306,16 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 		raw[i] = rcv[hdr_size + i];
 	}
 	if (enable) {
-		char filename[NAME_LEN] = {0};
-		usr_play_file_get(filename);
-		if (strnlen(filename, NAME_LEN)) {
-			int fd = open_in_dir("/opt/signal", filename);
-			if (fd > 0) {
-				dbg_printf("display %s\n", filename);
-				usr_mm2s_set_play(2);
-				usr_net_xdma_play(fd, cfg->private);
+		if (fpga_get_play_enable() != 2) {
+			char filename[NAME_LEN] = {0};
+			usr_play_file_get(filename);
+			if (strnlen(filename, NAME_LEN)) {
+				int fd = open_in_dir("/opt/signal", filename);
+				if (fd > 0) {
+					dbg_printf("display %s\n", filename);
+					usr_mm2s_set_play(2);
+					usr_net_xdma_play(fd, cfg->private);
+				}
 			}
 		}
 		usleep(100000);

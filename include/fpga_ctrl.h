@@ -39,6 +39,8 @@ void fpga_dac_enable(bool enable);
 
 u16 fpga_get_status(void);
 
+u32 fpga_get_play_enable(void);
+
 #ifdef __cplusplus
 }
 #endif
