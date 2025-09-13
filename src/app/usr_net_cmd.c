@@ -231,10 +231,7 @@ int usr_net_chan_config(cfg_param_t *cfg)
 			done = 1;
 
 		if (done) {
-			int fd = open_in_dir("/opt/signal", filename);
-			dbg_printf("display %s\n", filename);
 			usr_play_file_record(filename);
-			usr_net_xdma_play(fd, cfg->private);
 		}
 	}
 
@@ -306,15 +303,38 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	if ((pos = usr_net_cmd_header_fill(snd, rep_size, NET_CMD_REPLAY_CTRL)) != hdr_size)
 		return ret;
 
-	usr_mm2s_set_play(enable ? 2 : 0);
-	usleep(100000);
-	memset(raw, 0, 19);
-	for (int i = 0; i < pack_size - 8; i++) {
-		raw[i] = rcv[hdr_size + i];
-		dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
+	if (enable) {
+		char filename[NAME_LEN] = {0};
+		usr_play_file_get(filename);
+		if (strnlen(filename, NAME_LEN)) {
+			int fd = open_in_dir("/opt/signal", filename);
+			if (fd > 0) {
+				dbg_printf("display %s\n", filename);
+				usr_mm2s_set_play(2);
+				usr_net_xdma_play(fd, cfg->private);
+			}
+		}
+		usleep(100000);
+
+		memset(raw, 0, 19);
+		for (int i = 0; i < pack_size - 8; i++) {
+			raw[i] = rcv[hdr_size + i];
+			dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
+		}
+		usr_send_build_frame(pa_buf, raw, 19);
+		usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
+	} else {
+		memset(raw, 0, 19);
+		for (int i = 0; i < pack_size - 8; i++) {
+			raw[i] = rcv[hdr_size + i];
+			dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
+		}
+		usr_send_build_frame(pa_buf, raw, 19);
+		usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
+
+		usleep(100000);
+		usr_mm2s_set_play(0);
 	}
-	usr_send_build_frame(pa_buf, raw, 19);
-	usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
 	pos += little_endian_byte_set(&snd[pos], 1);
 	ret = usr_net_cmd_tail_fill(&snd[pos]);
 	usr_cmd_set_snd_size(&cfg->snd_size, rep_size);

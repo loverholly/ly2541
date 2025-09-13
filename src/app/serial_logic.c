@@ -124,13 +124,16 @@ void usr_ser_param_set(void *handle)
 
 		usr_mm2s_set_play(2);
 		usr_net_xdma_play(fd, res);
+
+		usleep(100000);
+		usr_send_serial_frame(res->to_pa_serial, buf, 24);
 	} else {
+		usr_send_serial_frame(res->to_pa_serial, buf, 24);
+		usleep(100000);
+
 		usr_mm2s_set_play(0);
 		usr_mm2s_write_enable(false);
 	}
-
-	usleep(100000);
-	usr_send_serial_frame(res->to_pa_serial, buf, 24);
 }
 
 void usr_ser_logic(void *handle)

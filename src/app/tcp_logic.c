@@ -58,7 +58,7 @@ void *recv_from_socket(void *param)
 			/* recv remain packet due to the frame_len */
 			size = usr_recv_from_socket(connect_fd, rcv_buf + size, frame_len);
 			if (size == frame_len && usr_net_tail_is_valid(rcv_buf + frame_tail)) {
-				if(*(short *)&rcv_buf[4] != 0xa006) {
+				if (*(short *)&rcv_buf[4] != 0xa006) {
 					for (int i = 0; i < pack_size; i++) {
 						dbg_printf("rcv buf[%d] %02x\n", i, (u8)rcv_buf[i]);
 					}
@@ -101,7 +101,7 @@ void *period_snd_socket(void *param)
 {
 	buf_res_t *snd = param;
 	dbg_printf("new the snd socket %d!\n", snd->accept_fd);
-	while(true) {
+	while (true) {
 		char *snd_buf = snd->snd_buf;
 		char *input = snd->raw;
 		pthread_mutex_lock(&snd->mutex);
