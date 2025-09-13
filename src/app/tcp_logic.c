@@ -58,9 +58,12 @@ void *recv_from_socket(void *param)
 			/* recv remain packet due to the frame_len */
 			size = usr_recv_from_socket(connect_fd, rcv_buf + size, frame_len);
 			if (size == frame_len && usr_net_tail_is_valid(rcv_buf + frame_tail)) {
-				for (int i = 0; i < pack_size; i++) {
-					dbg_printf("rcv buf[%d] %02x\n", i, (u8)rcv_buf[i]);
+				if(*(short *)&rcv_buf[4] != 0xa006) {
+					for (int i = 0; i < pack_size; i++) {
+						dbg_printf("rcv buf[%d] %02x\n", i, (u8)rcv_buf[i]);
+					}
 				}
+
 				cfg_param_t cfg = {
 					.rcv_buf = rcv_buf,
 					.rcv_size = pack_size,
@@ -132,7 +135,7 @@ void *period_snd_socket(void *param)
 		snd_buf[16] = input[10];
 		snd_buf[17] = input[11];
 		snd_buf[18] = (input[12] & 0x80) | ((~input[12]) & 0x7f);
-		snd_buf[19] = (~input[13]) & 0x1;
+		snd_buf[19] = input[13] & 0x1;
 		snd_buf[20] = 0;
 		snd_buf[21] = 0;
 
@@ -144,6 +147,9 @@ void *period_snd_socket(void *param)
 			dbg_printf("close the snd socket!\n");
 			snd->accept_fd = -1;
 			goto end;
+		}
+		for (int i = 0; i < 24; i++) {
+			dbg_printf("snd_buf[%d] %02x\n", i, (u8)snd_buf[i]);
 		}
 
 		pthread_mutex_unlock(&snd->mutex);

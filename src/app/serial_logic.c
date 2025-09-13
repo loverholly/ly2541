@@ -122,6 +122,7 @@ void usr_ser_param_set(void *handle)
 		usr_play_file_record(filename);
 		dbg_printf("display %s\n", filename);
 
+		usr_mm2s_set_play(2);
 		usr_net_xdma_play(fd, res);
 	} else {
 		usr_mm2s_set_play(0);
@@ -146,6 +147,9 @@ void *serial_rcv_host_thread(void *param)
 		char *rcv_buf = buf_res->rcv_buf;
 		int max_len = min(128, buf_res->size);
 		if ((rcv_len = usr_recv_serial_frame(res->to_host_serial, (u8 *)rcv_buf, max_len)) > 0) {
+			for (int i = 0; i < rcv_len; i++) {
+				dbg_printf("rcv_buf[%d] %02x\n", i, rcv_buf[i]);
+			}
 			usr_ser_logic(param);
 		}
 		usleep(5000);

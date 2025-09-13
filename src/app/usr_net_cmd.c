@@ -355,7 +355,7 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 		}
 	}
 
-	printf("net cmd 0x%x skipped\n", hdr->frame_cmd);
+	dbg_printf("net cmd 0x%x skipped\n", hdr->frame_cmd);
 	return -1;
 }
 
