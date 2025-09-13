@@ -181,7 +181,12 @@ void *serial_pa_thread(void *param)
 			pa_pre_cur = rcv_buf[10] << 8 | rcv_buf[11];
 			pa_pre_ps[0] = rcv_buf[12];
 			pa_pre_ps[1] = rcv_buf[13];
-			pa_sts = rcv_buf[14] & 0x1;
+			pa_sts = !!(rcv_buf[14] & (0x1 << 7));
+#if 0
+			for (int i = 0; i < 24; i++) {
+				dbg_printf("rcv_buf[%d] %02x\n", i, (u8)rcv_buf[i]);
+			}
+#endif
 		}
 
 		usleep(10000);
