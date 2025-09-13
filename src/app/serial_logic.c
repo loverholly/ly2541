@@ -119,6 +119,7 @@ void usr_ser_param_set(void *handle)
 
 	if (enable && done) {
 		int fd = open_in_dir("/opt/signal", filename);
+		usr_play_file_record(filename);
 		dbg_printf("display %s\n", filename);
 
 		usr_net_xdma_play(fd, res);

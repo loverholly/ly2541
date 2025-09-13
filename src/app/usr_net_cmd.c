@@ -99,16 +99,13 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	int rep_size;
 	u8 chan_num = 1;
 	char *buf = cfg->snd_buf;
-	char latest[NAME_LEN] = {0};
 	char filename[NAME_LEN] = {0};
 	int hdr_size = usr_net_cmd_hdr_size();
 	void *handle = ((usr_thread_res_t *)cfg->private)->fpga_handle;
 
 	dbg_printf("handle %p\n", handle);
 	/* get latest access file */
-	if (last_access_file("/opt/singal/", latest, NULL) == 0)
-		strcpy(filename, latest);
-
+	usr_play_file_get(filename);
 	rep_size = 18 + strlen(filename);
 	dbg_printf("rep_size %x\n", rep_size);
 	if (usr_cmd_invalid_check(buf))
@@ -124,8 +121,8 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	u8 fpga_status = fpga_get_version() != ~0 ? 1 : 0;
 	pos += little_endian_byte_set(&buf[pos], fpga_status);
 	pos += little_endian_byte_set(&buf[pos], chan_num);
+	dbg_printf("filename %s\n", filename);
 	for (int i = 0; i < strlen(filename); i++) {
-		dbg_printf("filename[%d] 0x%02x\n", i, (u8)filename[i]);
 		pos += little_endian_byte_set(&buf[pos], filename[i]);
 	}
 
@@ -233,9 +230,12 @@ int usr_net_chan_config(cfg_param_t *cfg)
 		if (find_file_in_path("/opt/signal", filename, NULL) == 0)
 			done = 1;
 
-		int fd = open_in_dir("/opt/signal", filename);
-		dbg_printf("display %s\n", filename);
-		usr_net_xdma_play(fd, cfg->private);
+		if (done) {
+			int fd = open_in_dir("/opt/signal", filename);
+			dbg_printf("display %s\n", filename);
+			usr_play_file_record(filename);
+			usr_net_xdma_play(fd, cfg->private);
+		}
 	}
 
 	if (usr_cmd_invalid_check(buf))
@@ -308,11 +308,12 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 
 	usr_mm2s_set_play(enable ? 2 : 0);
 	usleep(100000);
+	memset(raw, 0, 19);
 	for (int i = 0; i < pack_size - 8; i++) {
 		raw[i] = rcv[hdr_size + i];
-		dbg_printf("raw[%d] %02x rcv[%d] %02x", i, raw[i], hdr_size + i, rcv[hdr_size + i]);
+		dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
 	}
-	usr_send_build_frame(pa_buf, raw, pack_size - 8);
+	usr_send_build_frame(pa_buf, raw, 19);
 	usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
 	pos += little_endian_byte_set(&snd[pos], 1);
 	ret = usr_net_cmd_tail_fill(&snd[pos]);

@@ -164,3 +164,22 @@ size_t get_fdisk_free(void)
 	dbg_printf("disk free size %ld\n", (unsigned long)disk_size);
 	return disk_size;
 }
+
+void usr_play_file_record(char *filename)
+{
+	int record_fd = open("/home/root/record.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	__unused int len = 0;
+	len = write(record_fd, filename, strlen(filename));
+	close(record_fd);
+}
+
+void usr_play_file_get(char *buf)
+{
+	char filename[NAME_MAX + 1] = {0};
+	int record_fd = open("/home/root/record.txt", O_RDWR);
+	if (record_fd > 0) {
+		int len = read(record_fd, filename, NAME_MAX);
+		memcpy(buf, filename, len);
+		close(record_fd);
+	}
+}

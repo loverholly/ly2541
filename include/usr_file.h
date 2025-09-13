@@ -11,4 +11,8 @@ size_t get_fdisk_size(void);
 
 size_t get_fdisk_free(void);
 
+void usr_play_file_record(char *filename);
+
+void usr_play_file_get(char *buf);
+
 #endif /* __USR_FILE_H__ */
