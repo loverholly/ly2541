@@ -14,6 +14,8 @@ typedef struct {
 	int disp_fd;
 	volatile int pa_disp;
 	char *rcv_buf;
+	char *ser_rcv_buf;
+	char *pa_rcv_buf;
 	char *slip;
 	char *raw;
 	char *snd_buf;

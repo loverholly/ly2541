@@ -31,6 +31,14 @@ int usr_thread_res_init(usr_thread_res_t *res)
 		if (!res->sock[i].rcv_buf)
 			perror("recv aligned alloc failed\n");
 
+		res->sock[i].ser_rcv_buf = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].ser_rcv_buf)
+			perror("ser recv aligned alloc failed\n");
+
+		res->sock[i].pa_rcv_buf = aligned_alloc(4, res->sock[i].size);
+		if (!res->sock[i].pa_rcv_buf)
+			perror("pa recv aligned alloc failed\n");
+
 		res->sock[i].slip = aligned_alloc(4, res->sock[i].size);
 		if (!res->sock[i].slip)
 			perror("slip aligned alloc failed\n");
@@ -72,6 +80,16 @@ int usr_thread_res_free(usr_thread_res_t *res)
 			free(res->sock[i].rcv_buf);
 		if (res->sock[i].snd_buf)
 			free(res->sock[i].snd_buf);
+		if (res->sock[i].ser_rcv_buf)
+			free(res->sock[i].snd_buf);
+
+		if (res->sock[i].raw)
+			free(res->sock[i].raw);
+		if (res->sock[i].slip)
+			free(res->sock[i].slip);
+		if (res->sock[i].pa_rcv_buf)
+			free(res->sock[i].pa_rcv_buf);
+
 		pthread_mutex_destroy(&res->sock[i].mutex);
 		pthread_mutex_destroy(&res->sock[i].pa_mutex);
 	}

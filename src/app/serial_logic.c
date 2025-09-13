@@ -102,7 +102,7 @@ void usr_ser_param_set(void *handle)
 {
 	usr_thread_res_t *res = handle;
 	buf_res_t *buf_res = &res->sock[0];
-	u8 *buf = (u8 *)buf_res->rcv_buf;
+	u8 *buf = (u8 *)buf_res->ser_rcv_buf;
 	u8 filenum = buf[3];
 	u8 done = 0;
 	__unused u8 ch0_pa = buf[6];
@@ -113,7 +113,6 @@ void usr_ser_param_set(void *handle)
 	/* 文件名编号 */
 	char len = hex2dec10(filenum, (u8 *)filename);
 	sprintf(filename + len, ".bin");
-	dbg_printf("filename %s\n", filename);
 	if (find_file_in_path("/opt/signal", filename, NULL) == 0)
 		done = 1;
 
@@ -147,7 +146,7 @@ void *serial_rcv_host_thread(void *param)
 	buf_res_t *buf_res = &res->sock[0];
 	while (true) {
 		int rcv_len;
-		char *rcv_buf = buf_res->rcv_buf;
+		char *rcv_buf = buf_res->ser_rcv_buf;
 		int max_len = min(128, buf_res->size);
 		if ((rcv_len = usr_recv_serial_frame(res->to_host_serial, (u8 *)rcv_buf, max_len)) > 0) {
 			for (int i = 0; i < rcv_len; i++) {
@@ -180,7 +179,7 @@ void *serial_pa_thread(void *param)
 
 	while (true) {
 		u32 max_len = res->sock[0].size;
-		u8 *rcv_buf = (u8 *)res->sock[0].rcv_buf;
+		u8 *rcv_buf = (u8 *)res->sock[0].pa_rcv_buf;
 		int rcv_len = 0;
 
 		if ((rcv_len = usr_recv_serial_frame(res->to_pa_serial, rcv_buf, max_len)) > 0) {

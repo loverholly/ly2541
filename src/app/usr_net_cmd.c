@@ -101,13 +101,11 @@ int usr_net_get_dev_sts(cfg_param_t *cfg)
 	char *buf = cfg->snd_buf;
 	char filename[NAME_LEN] = {0};
 	int hdr_size = usr_net_cmd_hdr_size();
-	void *handle = ((usr_thread_res_t *)cfg->private)->fpga_handle;
+	__unused void *handle = ((usr_thread_res_t *)cfg->private)->fpga_handle;
 
-	dbg_printf("handle %p\n", handle);
 	/* get latest access file */
 	usr_play_file_get(filename);
 	rep_size = 18 + strlen(filename);
-	dbg_printf("rep_size %x\n", rep_size);
 	if (usr_cmd_invalid_check(buf))
 		goto end;
 
@@ -303,6 +301,10 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 	if ((pos = usr_net_cmd_header_fill(snd, rep_size, NET_CMD_REPLAY_CTRL)) != hdr_size)
 		return ret;
 
+	memset(raw, 0, 19);
+	for (int i = 0; i < pack_size - 8; i++) {
+		raw[i] = rcv[hdr_size + i];
+	}
 	if (enable) {
 		char filename[NAME_LEN] = {0};
 		usr_play_file_get(filename);
@@ -316,19 +318,9 @@ int usr_net_ctrl_replay(cfg_param_t *cfg)
 		}
 		usleep(100000);
 
-		memset(raw, 0, 19);
-		for (int i = 0; i < pack_size - 8; i++) {
-			raw[i] = rcv[hdr_size + i];
-			dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
-		}
 		usr_send_build_frame(pa_buf, raw, 19);
 		usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
 	} else {
-		memset(raw, 0, 19);
-		for (int i = 0; i < pack_size - 8; i++) {
-			raw[i] = rcv[hdr_size + i];
-			dbg_printf("raw[%d] %02x rcv[%d] %02x\n", i, (u8)raw[i], hdr_size + i, (u8)rcv[hdr_size + i]);
-		}
 		usr_send_build_frame(pa_buf, raw, 19);
 		usr_send_serial_frame(res->to_pa_serial, (u8 *)pa_buf, 24);
 
@@ -375,7 +367,6 @@ int usr_net_cmd_handler(cfg_param_t *cfg)
 		}
 	}
 
-	dbg_printf("net cmd 0x%x skipped\n", hdr->frame_cmd);
 	return -1;
 }
 
