@@ -101,7 +101,7 @@ void *period_snd_socket(void *param)
 		period_feedback_buf_set(input, 19);
 		snd_buf[0] = 0xA5;
 		snd_buf[1] = 0xA5;
-		snd_buf[2] = 21;
+		snd_buf[2] = 22;
 		snd_buf[3] = 0;
 		snd_buf[4] = 0xFF;
 		snd_buf[5] = 0xAF;
@@ -124,12 +124,10 @@ void *period_snd_socket(void *param)
 		snd_buf[17] = input[11];
 		snd_buf[18] = (input[12] & 0x80) | ((~input[12]) & 0x7f);
 		snd_buf[19] = input[13] & 0x1;
-		snd_buf[20] = 0;
-		snd_buf[21] = 0;
 
-		snd_buf[22] = 0x7E;
-		snd_buf[23] = 0x7E;
-		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 24);
+		snd_buf[20] = 0x7E;
+		snd_buf[21] = 0x7E;
+		int ret = usr_send_to_socket(snd->accept_fd, snd_buf, 22);
 		if (ret < 0) {
 			usr_close_socket(snd->accept_fd);
 			dbg_printf("close the snd socket!\n");
