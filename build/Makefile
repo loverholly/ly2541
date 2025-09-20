@@ -150,4 +150,4 @@ $(BULID_STATIC_LIB) : $(OBJS)
 clean:
 	@rm -rf $(OBJ_PATH)
 	@rm -rf $(TOP_DIR)/test/build
-	@rm -rf $(BIN_PATH)
+	@rm -rf $(PRO_APP) 
