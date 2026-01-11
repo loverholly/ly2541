@@ -122,7 +122,7 @@ void *period_snd_socket(void *param)
 
 		snd_buf[16] = input[10];
 		snd_buf[17] = input[11];
-		snd_buf[18] = (input[12] & 0x80) | ((~input[12]) & 0x7f);
+		snd_buf[18] = input[12];
 		snd_buf[19] = input[13] & 0x1;
 
 		snd_buf[20] = 0x7E;

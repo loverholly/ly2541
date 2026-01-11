@@ -33,7 +33,7 @@ void period_feedback_buf_set(char *input, int len)
 	input[11] = usr_get_pa_ps(1);
 
 	u8 dac_status = (fpga_get_status() & 0x7);
-	u8 temp_status = !!(((char)input[0] <= 100) && ((char)input[5] <= 100));
+	u8 temp_status = !!(((char)input[0] <= (char)100) && ((char)input[5] <= (char)100));
 	u16 dac_vcc = (input[1] << 8 | input[2]);
 	u16 pa_vcc = (input[6] << 8 | input[7]);
 	u16 min_vcc = 20 * 1000 / 10;
